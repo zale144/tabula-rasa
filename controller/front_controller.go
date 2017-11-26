@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"github.com/julienschmidt/httprouter"
 	"log"
-	. "simple_server/util"
-	"simple_server/service"
+	. "tabula-rasa/util"
+	"tabula-rasa/service"
 	//"io/ioutil"
 	"io/ioutil"
 )

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"simple_server/dao"
+	"tabula-rasa/dao"
 )
 
 func Get(args ...string) (string, error) {

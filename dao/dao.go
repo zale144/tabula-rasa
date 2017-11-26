@@ -1,7 +1,7 @@
 package dao
 
 import (
-	. "simple_server/util"
+	. "tabula-rasa/util"
 	"strings"
 	"encoding/json"
 	"fmt"
