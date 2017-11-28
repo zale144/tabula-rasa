@@ -1,4 +1,8 @@
-var cachedData = {};
+var cachedData = {'types':[
+        {id : 'INT',         name : 'Integer'},
+        {id : 'VARCHAR(45)', name : 'String'},
+        {id : 'FLOAT',       name : 'Decimal'},
+        {id : 'REF',         name : 'Reference'}]};
 
 $(document).ready(function() {
     loadTabs();
@@ -66,6 +70,12 @@ $(document).ready(function() {
         $('.btn-ok', this).data('id', id);
     });
 
+    $(document).on('keydown', 'input[datafld]', function (e) {
+        if (e.which == 13) {
+            $('.btn-success').click();
+            return false;
+        }
+    });
 });
 
 function formSubmit(e) {
@@ -79,9 +89,22 @@ function formSubmit(e) {
         var fld = $(inputs[i]).attr('datafld');
         if (fld) {
             var value = $(e).find($('[datafld="' + fld + '"]')).val();
-            data[inputs[i].name] = value;
-            if (obj == 'home') {
-                data[inputs[i].name] = value.replace(/ /g, '_');
+            if (value && obj === 'home') {
+                var key = $(e).find($('select[datafld="' + fld + '"][name="types"]')).val();
+                value = value.replace(/ /g, '_');
+                if (i === 0) {
+                    data[inputs[i].name] = value;
+                } else {
+                    if (key === 'REF') {
+                        var select = $(e).find($('select[datafld="' + fld + '"][name="home"]')).val();
+                        data[key] = select;
+                    } else {
+                        data[key] = value;
+                    }
+                }
+            } else {
+                var attr = $(inputs[i]).attr('datafld');
+                data[attr] = value;
             }
         }
     }
@@ -116,10 +139,15 @@ function render(url) {
     if (!obj.startsWith("add")) {
         getPage("overview");
         getData(obj, loadTable);
+        $('h1').text(obj).css('textTransform', 'capitalize');
     } else {
-        loadAddEditPage(obj);
+        if (!$('[name="Table name"]')[0]) {
+            loadAddEditPage(obj);
+        } else {
+            getPage('addEdit');
+        }
+        $('h1').text("Add Table").css('textTransform', 'capitalize');
     }
-    $('h1').text(obj).css('textTransform', 'capitalize');
 }
 
 function getPage(obj) {
@@ -156,7 +184,7 @@ function loadTabs() {
         ul.append(li);
         function getLi(name) {
             var li = $('<li>').attr('role', "presentation").attr('tab', name);
-            var a = $('<a>').attr('href', '#' + ((name=='+')?'addEdit':name)).text(capitalizeFirstLetter(name));
+            var a = $('<a>').attr('href', '#' + ((name==='+')?'addEdit':name)).text(capitalizeFirstLetter(name));
             return li.append(a);
         }
     }
@@ -164,7 +192,7 @@ function loadTabs() {
 
 function loadTable(data, obj) {
     var addButton = $('#add').text('Add '
-        + capitalizeFirstLetter(((obj=='home')?'Entity':obj)));
+        + capitalizeFirstLetter(((obj==='home')?'Table':obj)));
     if (obj === 'home') {
         addButton.removeAttr('onclick role');
         addButton.attr('href', '#addEdithome');
@@ -197,7 +225,7 @@ function loadTable(data, obj) {
                     if (item[keys[k]] instanceof  Object &&
                         !(item[keys[k]] instanceof  Array)) {
                         str = item[keys[k]].name;
-                    } else if (keys[k] == 'date') {
+                    } else if (keys[k] === 'date') {
                         str = $('<a href="' + "" + item.id + '" >' + formatDate(item[keys[k]]) + '</a>');
                     } else if (item[keys[k]] instanceof  Array) {
                         str = $('<ul></ul>');
@@ -205,13 +233,22 @@ function loadTable(data, obj) {
                             str.append($('<li>' + e.name + '</li>'));
                         });
                     } else {
-                        str = (k == 1)?$('<a href="' + "" + item.id + '" >' + item[keys[k]] + '</a>'): item[keys[k]];
+                        str = (k === 1)?$('<a href="' + "" + item.id + '" >' + item[keys[k]] + '</a>'): item[keys[k]];
                     }
                     td.append(str);
                 }
 
             }
-            row.append($('<td><a role="button" class="btn btn-info" onclick="editRow(this.parentElement.parentElement)">Edit</a></td>'));
+            var etd = $('<td>');
+            var editBtn = $('<a role="button" class="btn" >')
+            etd.append(editBtn)
+            row.append(etd);
+            if (obj === 'home') {
+                editBtn.addClass('btn-default').attr('onclick', 'window.location.href = "#" + $(":nth-child(2)", this.parentElement.parentElement).text()')
+                    .text('View');
+            } else {
+                editBtn.addClass('btn-info').attr('onclick', 'editRow(this.parentElement.parentElement)').text('Edit');
+            }
             row.append($('<td><a role="button" class="btn btn-danger" data-toggle="modal" ' +
                 ' data-target="#confirm-delete">Delete</a></td>'));
         });
@@ -228,8 +265,12 @@ function loadTable(data, obj) {
 function loadTableHeaders(headers, keys) {
     var tH = $('<tr></tr>');
     headers.append(tH);
-    for(k in keys) {
-        tH.append($('<th>' + capitalizeFirstLetter(keys[k]) + '</th>'));
+    for(var k = 0; k < keys.length; k++) {
+        var key = keys[k];
+        if (key.endsWith("_id")) {
+            key = key.substring(0, key.length-3);
+        }
+        tH.append($('<th>' + capitalizeFirstLetter(key) + '</th>'));
     }
     tH.append($('<th>Edit</th>')).append($('<th>Delete</th>'));
 }
@@ -253,14 +294,13 @@ function loadAjax(obj, func) {
 }
 
 function loadAddEditPage(obj, id) {
-    dropdown();
     obj = obj.substring(7, obj.length);
     getPage('addEdit');
 
     var formDiv = $('#form');
     formDiv.empty();
     var form = $('<form>').addClass('form-horizontal').attr('name', obj)
-        .attr('onsubmit', 'event.preventDefault();formSubmit(this);');
+        .attr('onsubmit', 'event.preventDefault();checkColumns(this);');
     formDiv.append(form);
 
     if (obj !== 'home') {
@@ -288,7 +328,7 @@ function loadAddEditPage(obj, id) {
             div.append(label);
             var fDiv = $('<div>').addClass('col-md-8');
             div.append(fDiv);
-            var input = $('<input>').attr('type', 'text').attr('name', col)
+            input = $('<input>').attr('type', 'text').attr('name', col)
                 .attr('onclick', 'this.select();');
             fDiv.append(input);
             if (col === 'Column name') {
@@ -308,10 +348,17 @@ function loadAddEditPage(obj, id) {
         cancelDiv.append(a);
         var submitDiv = $('<div>').addClass('col-md-2');
         buttonDiv.append(submitDiv);
-        var submit = $('<input>').addClass('btn btn-default').attr('type', 'submit')
-            .attr('value', 'Create ' + capitalizeFirstLetter(obj));
+       var submit = $('<input>').addClass('btn btn-default').attr('type', 'submit')
+            .attr('value', 'Create table');
         submitDiv.append(submit);
     }
+    $('input[name="Table name"]').on('input',function(e){
+        if (e.currentTarget.value === "") {
+            $('input[type="submit"].btn-default').get(0).value = "Create table"
+        } else {
+            $('input[type="submit"].btn-default').get(0).value = "Create table '" + e.currentTarget.value + "'";
+        }
+    });
 }
 
 function addColumn(e) {
@@ -321,9 +368,21 @@ function addColumn(e) {
         var addedCols = $('#addedCols');
         var li = $('<li>').addClass('list-group-item');
         var fIn = $('<input>').val(name).attr('datafld', name).attr('name', name).prop('required', true);
+        var label = $('<label>Type</label>').attr('for', name);
         li.append(fIn);
+        li.append(label);
+        dropdown('types', name, li)
         addedCols.append(li);
         input.val('');
+        $('select[name="types"][datafld="' + name + '"]').change(function(e) {
+            if(this.value == 'REF') {
+                fIn.siblings('label').remove();
+                dropdown('home', name, li);
+            } else {
+                $(this).before(label);
+                li.find('select[name="home"]').remove();
+            }
+        });
     } else {
         alert('Please input column name.');
     }
@@ -336,7 +395,7 @@ function addRow(obj) {
         for (var d in data) {
             cols.push(data[d].COLUMN_NAME);
         }
-        if ($('thead').children().length === 0) {
+        if (headers.children().length === 0) {
             loadTableHeaders(headers, cols);
         }
         var body = $('#grid').find('tbody');
@@ -349,18 +408,37 @@ function addRow(obj) {
             var td = $('<td>');
             tr.append(td);
             if (i > 0) {
-                var input = $('<input>').attr('type', 'text').attr('name', cols[i])
-                    .attr('onclick', 'this.select();').attr('datafld', cols[i])
-                    .attr('placeholder', capitalizeFirstLetter(cols[i]));
-                td.append(input);
+                var name = cols[i].substring(0, cols[i].length - 3);
+                if (cols[i].endsWith('_id')) {
+                    dropdown(name, cols[i], td);
+                } else {
+                   var input = $('<input>').attr('type', 'text').attr('name', cols[i])
+                        .attr('onclick', 'this.select();').attr('datafld', cols[i])
+                        .attr('placeholder', capitalizeFirstLetter(cols[i]));
+                    td.append(input);
+                }
             }
         }
         tr.append($('<td><input type="submit" class="btn btn-success" ' +
             'onclick="formSubmit(this.parentElement.parentElement)" /></td>'));
         tr.append($('<td><a role="button" class="btn btn-default" ' +
             'onclick="removeRow(this.parentElement.parentElement);">Cancel</a></td>'));
-
+        if ($("input:text:visible:not(:disabled):first").get(0)) {
+            $("input:text:visible:not(:disabled):first").get(0).focus();
+        }
     });
+}
+
+function checkColumns(e) {
+    if (!$('[name="Table name"]').val()) {
+        alert('Please input table name before saving');
+    } else if ($('[name="Column name"]').val()) {
+        alert('Please add the column before saving');
+    } else if ($('#addedCols').is(':empty')) {
+        alert('Please add at lease one column before saving');
+    } else {
+        formSubmit(e);
+    }
 }
 
 function removeRow(e) {
@@ -379,8 +457,8 @@ function editRow(e) {
         $(el).text('');
         var col = capitalizeFirstLetter($(headers[i]).text());
         var input = $('<input>').val(value).attr('type', 'text').attr('name', col)
-            .attr('onclick', 'this.select();').attr('datafld', col)
-        if (i == 0) {
+            .attr('onclick', 'this.select();').attr('datafld', col);
+        if (i === 0) {
             input.prop('disabled', true);
             input.width('100%');
             $(el).width('30px');
@@ -391,20 +469,18 @@ function editRow(e) {
         .text('Cancel').removeAttr('data-target data-toggle').click(function() {getData(obj, loadTable)});
     tds.last().prev().find('a').removeClass('btn-info').addClass('btn-success').text('Save')
         .attr('onclick', 'formSubmit(this.parentElement.parentElement)');
+    $("input:text:visible:not(:disabled):first").get(0).focus();
 }
 
-function dropdown() {
-    elems = $('select');
-    elems.empty();
-    $.each(elems, function(i, elem) {
-        var obj = $(elem).attr('datafld');
-        getData(obj, function(data) {
-            $.each(data, function(ind, d) {
-                var option = document.createElement('option');
-                option.innerHTML = d.name;
-                option.value = d.id;
-                elem.append(option);
-            });
+function dropdown(name, datafld, parent) {
+    var select = $('<select>').addClass('emptyDropdown').attr('name', name).attr('datafld', datafld);
+    parent.append(select)
+    getData(name, function(data) {
+        $.each(data, function(ind, d) {
+            var option = document.createElement('option');
+            option.innerHTML = (name==='home')?d.table_name:d.name;
+            option.value = (name==='home')?d.table_name:d.id;
+            select.append(option);
         });
     });
 }

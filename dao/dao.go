@@ -3,7 +3,6 @@ package dao
 import (
 	. "tabula-rasa/util"
 	"strings"
-	"encoding/json"
 	"fmt"
 	"strconv"
 )
@@ -26,7 +25,7 @@ func Get(args ...string) (string, error) {
 		query = `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
 		WHERE TABLE_SCHEMA = 'superhero' AND TABLE_NAME = '` + name + "'"
 	}
-
+	fmt.Println(query)
 	rows, err := Db.Query(query)
 	CheckError(err)
 	cols, err := rows.Columns()
@@ -61,21 +60,38 @@ func Get(args ...string) (string, error) {
 
 // create entity
 func Create(name string, obj []byte) (string, error) {
-	objMap := make(map[string]string)
-	json.Unmarshal(obj, &objMap)
+
+	//objMap := make(map[string]string)
+	//json.Unmarshal(obj, &objMap)
 	cols := []string{}
 	vals := []interface{}{}
 	placeholders := []string{}
-	var queryStr string
+
+	str := strings.Replace(string(obj[1:len(obj)-1]), "\"", "", -1)
+	pairs := strings.Split(str, ",")
 	var id int64 = 0
-	for k, v := range objMap {
+
+	for _, item := range pairs {
+		pair := strings.Split(item, ":")
+		cols = append(cols, pair[0])
+		vals = append(vals, pair[1])
+		if pair[0] == "Id" {
+			id, _ = strconv.ParseInt(pair[1], 0, 64)
+		}
+		placeholders = append(placeholders, "?")
+	}
+
+
+	var queryStr string
+
+	/*for k, v := range objMap {
 		cols = append(cols, k)
 		vals = append(vals, v)
 		if k == "Id" {
 			id, _ = strconv.ParseInt(v, 0, 64)
 		}
 		placeholders = append(placeholders, "?")
-	}
+	}*/
 	if name != "home" {
 		if id > 0 {
 			queryStr = `UPDATE ` + name + ` SET `
@@ -93,19 +109,33 @@ func Create(name string, obj []byte) (string, error) {
 				" (" + colsStr + ") VALUES (" + plcStr + ")"
 		}
 	} else {
-		colsStr := "";
-		for i, val := range vals {
-			if cols[i] != "Table name" {
-				colsStr +=  val.(string) + ` VARCHAR(45),`
+		colsStr := ""
+		fkStr := ""
+		fk := ""
+		tableName := ""
+		for i, col := range cols {
+			if col == "Table name" {
+				tableName = vals[i].(string)
+				queryStr = `CREATE TABLE ` + tableName +
+					`(	id INT NOT NULL AUTO_INCREMENT, `
 			} else {
-				queryStr = `CREATE TABLE ` + vals[i].(string) +
-					`(
-						id INT NOT NULL AUTO_INCREMENT, `
+				val := vals[i].(string)
+				if col == "REF" {
+					colsStr += val + `_id INT, `
+					fk = val
+				} else {
+						  //	name	  type
+					colsStr += val + ` ` + col + `,`
+				}
 			}
 		}
+		if fk != "" {
+			fkStr = `,` + makeForeignKey(tableName, fk)
+		}
 		queryStr += colsStr
-		queryStr += `PRIMARY KEY (id),
+		queryStr += ` PRIMARY KEY (id),
 				UNIQUE INDEX id_UNIQUE (id ASC)
+			` + fkStr + `
 			)`
 		vals = vals[:0]
 	}
@@ -119,16 +149,27 @@ func Create(name string, obj []byte) (string, error) {
 	return Get(name, fmt.Sprint(id), "")
 }
 
+func makeForeignKey(this, ref string) string {
+	return `KEY fk_`+ this +`_`+ ref + `_id_idx (`+ ref +`_id),
+			  CONSTRAINT fk_`+ this +`_`+ ref + `_id
+			  FOREIGN KEY (`+ ref +`_id)
+			  REFERENCES `+ ref +` (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
+}
+
 // delete entity
 func Delete(name string, id string) (string, error) {
 	var err error
 	if name == "home" {
-		stmt, err := Db.Prepare("DROP TABLE " + id)
+		queryStr := "DROP TABLE " + id
+		fmt.Println(queryStr)
+		stmt, err := Db.Prepare(queryStr)
 		CheckError(err)
 		_, err = stmt.Exec()
 		stmt.Close()
 	} else {
-		stmt, err := Db.Prepare("DELETE FROM " + name + " WHERE id = ?")
+		queryStr := "DELETE FROM " + name + " WHERE id = ?"
+		fmt.Println(queryStr)
+		stmt, err := Db.Prepare(queryStr)
 		CheckError(err)
 		_, err = stmt.Exec(id)
 		stmt.Close()
