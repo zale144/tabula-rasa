@@ -5,6 +5,7 @@ import (
 	"strings"
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
 // get all entities
@@ -14,7 +15,7 @@ func Get(args ...string) (string, error) {
 	spec := args[2]
 	single := false
 	query := "SELECT * FROM " + name
-	if id != "" {
+	if id != "" && id != "0" {
 		id = args[1]
 		query += " WHERE id = " + id
 		single = true
@@ -65,21 +66,56 @@ func Create(name string, obj []byte) (string, error) {
 	cols := []string{}
 	vals := []interface{}{}
 	placeholders := []string{}
+	var queryStr string
+	var id int64 = 0
 	for k, v := range objMap {
 		cols = append(cols, k)
 		vals = append(vals, v)
+		if k == "Id" {
+			id, _ = strconv.ParseInt(v, 0, 64)
+		}
 		placeholders = append(placeholders, "?")
 	}
-	colsStr := strings.Join(cols, ", ")
-	plcStr := strings.Join(placeholders, ",")
-	queryStr := "INSERT INTO " + name +
-		" (" + colsStr + ") VALUES (" + plcStr + ")"
+	if name != "home" {
+		if id > 0 {
+			queryStr = `UPDATE ` + name + ` SET `
+			for i, el := range cols {
+				if el != "Id" {
+					queryStr += el + ` = '` + vals[i].(string) + `',`
+				}
+			}
+			queryStr = queryStr[:len(queryStr) - 1] + ` WHERE id = ` + strconv.FormatInt(id, 10)
+			vals = vals[:0]
+		} else {
+			colsStr := strings.Join(cols, ", ")
+			plcStr := strings.Join(placeholders, ",")
+			queryStr = "INSERT INTO " + name +
+				" (" + colsStr + ") VALUES (" + plcStr + ")"
+		}
+	} else {
+		colsStr := "";
+		for i, val := range vals {
+			if cols[i] != "Table name" {
+				colsStr +=  val.(string) + ` VARCHAR(45),`
+			} else {
+				queryStr = `CREATE TABLE ` + vals[i].(string) +
+					`(
+						id INT NOT NULL AUTO_INCREMENT, `
+			}
+		}
+		queryStr += colsStr
+		queryStr += `PRIMARY KEY (id),
+				UNIQUE INDEX id_UNIQUE (id ASC)
+			)`
+		vals = vals[:0]
+	}
 	stmt, err := Db.Prepare(queryStr)
+	fmt.Println(queryStr)
 	CheckError(err)
 	defer stmt.Close()
 	res, err := stmt.Exec(vals...)
 	CheckError(err)
-	id, _ := res.LastInsertId()
+	id, _ = res.LastInsertId()
 	return Get(name, fmt.Sprint(id), "")
 }
 

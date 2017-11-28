@@ -1,6 +1,6 @@
 package main
 
-import "simple_server/controller"
+import "tabula-rasa/controller"
 
 func main()  {
 	controller.SetupRouter();

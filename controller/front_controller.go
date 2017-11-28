@@ -7,9 +7,15 @@ import (
 	"log"
 	. "tabula-rasa/util"
 	"tabula-rasa/service"
-	//"io/ioutil"
 	"io/ioutil"
 )
+
+type Param struct {
+	Key   string
+	Value string
+}
+
+type Params []Param
 
 func SetupRouter()  {
 	router := httprouter.New()

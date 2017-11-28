@@ -46,6 +46,7 @@ $(document).ready(function() {
                     }
                 }*/
                 getData(obj, loadTable);
+                loadTabs();
             }
         });
     });
@@ -74,27 +75,36 @@ function formSubmit(e) {
     var obj = $(e).attr("name");
     var data = {};
 
-    for (var i = 0; i < inputs.length - 1; i++) {
+    for (var i = 0; i < inputs.length; i++) {
         var fld = $(inputs[i]).attr('datafld');
         if (fld) {
-            data[inputs[i].name] = $(e).find($('[datafld="' + fld + '"]')).val();
+            var value = $(e).find($('[datafld="' + fld + '"]')).val();
+            data[inputs[i].name] = value;
+            if (obj == 'home') {
+                data[inputs[i].name] = value.replace(/ /g, '_');
+            }
         }
     }
     $.ajax({
-        type: id?'PUT':'POST',
-        url: "/rest/" + obj + "/" + id,
+        type: 'POST',
+        url: "/rest/" + obj,
         data: JSON.stringify(data),
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
         'dataType': 'json',
-        success: function(data, status) {
-            if (data) {
-                id = data.id;
+        success: function(newData, status) {
+            if (newData) {
+                id = newData.id;
             }
             cachedData[obj] = [];
-            window.location.href = "#" + obj;
+            if (obj === 'home') {
+                obj = data['Table name'];
+                loadTabs();
+                window.location.href = "#" + obj;
+            }
+            getData(obj, loadTable);
         }
     });
 }
@@ -130,6 +140,7 @@ function loadTabs() {
     getData('home', dataF);
     function dataF(data) {
         var tabs = $('#tabs');
+        tabs.empty();
         var name = 'home';
         var ul = $('<ul>').addClass('nav nav-tabs');
         var li = getLi(name);
@@ -141,6 +152,7 @@ function loadTabs() {
             ul.append(li);
         }
         li = getLi('+');
+        li.find('a').attr('href', '#addEdithome');
         ul.append(li);
         function getLi(name) {
             var li = $('<li>').attr('role', "presentation").attr('tab', name);
@@ -151,26 +163,28 @@ function loadTabs() {
 }
 
 function loadTable(data, obj) {
-    $('#add').attr('href', '#addEdit' + obj).text('Add '
+    var addButton = $('#add').text('Add '
         + capitalizeFirstLetter(((obj=='home')?'Entity':obj)));
+    if (obj === 'home') {
+        addButton.removeAttr('onclick role');
+        addButton.attr('href', '#addEdithome');
+    } else {
+        addButton.removeAttr('href');
+        addButton.attr('onclick', 'addRow("' + obj + '")').attr('role', 'button');
+    }
+    var table = $('<table></table>').addClass('table table-bordered');
     var grid = $('#grid');
     grid.empty();
+    var headers = $('<thead></thead>');
+    var contentRows = $('<tbody></tbody>');
+
+    grid.append(table);
+    table.append(contentRows);
+    table.append(headers);
+
     if (data.length > 0) {
-        var table = $('<table></table>').addClass('table table-bordered');
-        var headers = $('<thead></thead>');
-        var contentRows = $('<tbody></tbody>');
         var keys = Object.keys(data[0]);
-
-        table.append(headers);
-        table.append(contentRows);
-        grid.append(table);
-
-        var tH = $('<tr></tr>');
-        headers.append(tH);
-        for(k in keys) {
-            tH.append($('<th>' + capitalizeFirstLetter(keys[k]) + '</th>'));
-        }
-        tH.append($('<th>Edit</th>')).append($('<th>Delete</th>'));
+        loadTableHeaders(headers, keys);
         $.each(data, function (index, item) {
             var row = $('<tr></tr>');
             contentRows.append(row);
@@ -197,8 +211,7 @@ function loadTable(data, obj) {
                 }
 
             }
-            //row += '<td><a class="btn btn-info" role="button" onclick="loadAddEditPage(\''+obj+'\', '+item.id+')">Edit</a></td>';
-            row.append($('<td><a class="btn btn-info" href="#' + '' + '">Edit</a></td>'));
+            row.append($('<td><a role="button" class="btn btn-info" onclick="editRow(this.parentElement.parentElement)">Edit</a></td>'));
             row.append($('<td><a role="button" class="btn btn-danger" data-toggle="modal" ' +
                 ' data-target="#confirm-delete">Delete</a></td>'));
         });
@@ -210,6 +223,15 @@ function loadTable(data, obj) {
             + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
         return d;
     }
+}
+
+function loadTableHeaders(headers, keys) {
+    var tH = $('<tr></tr>');
+    headers.append(tH);
+    for(k in keys) {
+        tH.append($('<th>' + capitalizeFirstLetter(keys[k]) + '</th>'));
+    }
+    tH.append($('<th>Edit</th>')).append($('<th>Delete</th>'));
 }
 
 function loadAjax(obj, func) {
@@ -235,35 +257,48 @@ function loadAddEditPage(obj, id) {
     obj = obj.substring(7, obj.length);
     getPage('addEdit');
 
-    var cols = [];
-    getData(obj + '/cols', function(data) {
-       for (var d in data) {
-           cols.push(data[d].COLUMN_NAME);
-       }
-        createFields(cols);
-    });
+    var formDiv = $('#form');
+    formDiv.empty();
+    var form = $('<form>').addClass('form-horizontal').attr('name', obj)
+        .attr('onsubmit', 'event.preventDefault();formSubmit(this);');
+    formDiv.append(form);
 
-    function createFields(cols) {
-        var formDiv = $('#form');
-        formDiv.empty();
-        var form = $('<form>').addClass('form-horizontal').attr('name', obj)
-            .attr('onsubmit', 'event.preventDefault();formSubmit(this);');
-        formDiv.append(form);
+    if (obj !== 'home') {
+        getData(obj + '/cols', function(data) {
+            var cols = [];
+            for (var d in data) {
+                cols.push(data[d].COLUMN_NAME);
+            }
+            createFields(obj, cols);
+        });
+    } else {
+        createFields(obj, ['Table name', 'Column name']);
+    }
+
+    function createFields(obj, cols) {
         for (var i = 0; i < cols.length; i++) {
             var col = cols[i];
-            if (col == 'id') {
+            if (col === 'id') {
                 continue;
             }
             var div = $('<div>').addClass('form-group');
-                form.append(div);
+            form.append(div);
             var label = $('<label>').addClass('col-md-4 control-label')
                 .attr('for', col).text(capitalizeFirstLetter(col) + ':');
             div.append(label);
             var fDiv = $('<div>').addClass('col-md-8');
             div.append(fDiv);
             var input = $('<input>').attr('type', 'text').attr('name', col)
-                .attr('datafld', col);
+                .attr('onclick', 'this.select();');
             fDiv.append(input);
+            if (col === 'Column name') {
+                var ol = $('<ol>').addClass('list-group col-md-offset-2').attr('id', 'addedCols');
+                div.after(ol);
+                var add = $('<button>').attr('onclick', 'event.preventDefault();addColumn(this)').text('+');
+                fDiv.append(add);
+            } else {
+                input.attr('datafld', col);
+            }
         }
         var buttonDiv = $('<div>').addClass('form-group');
         form.append(buttonDiv);
@@ -277,6 +312,85 @@ function loadAddEditPage(obj, id) {
             .attr('value', 'Create ' + capitalizeFirstLetter(obj));
         submitDiv.append(submit);
     }
+}
+
+function addColumn(e) {
+    var input = $(e).prev();
+    var name = input.val();
+    if (name) {
+        var addedCols = $('#addedCols');
+        var li = $('<li>').addClass('list-group-item');
+        var fIn = $('<input>').val(name).attr('datafld', name).attr('name', name).prop('required', true);
+        li.append(fIn);
+        addedCols.append(li);
+        input.val('');
+    } else {
+        alert('Please input column name.');
+    }
+}
+
+function addRow(obj) {
+    getData(obj + '/cols', function(data) {
+        var headers = $('thead');
+        var cols = [];
+        for (var d in data) {
+            cols.push(data[d].COLUMN_NAME);
+        }
+        if ($('thead').children().length === 0) {
+            loadTableHeaders(headers, cols);
+        }
+        var body = $('#grid').find('tbody');
+        var form = $('<form>').attr('id', 'form').attr('name', obj)
+            .attr('onsubmit', 'event.preventDefault();formSubmit(this);');
+        var tr = $('<tr>').attr('name', obj);
+        form.append(tr);
+        body.append(tr);
+        for (var i = 0; i < cols.length; i++) {
+            var td = $('<td>');
+            tr.append(td);
+            if (i > 0) {
+                var input = $('<input>').attr('type', 'text').attr('name', cols[i])
+                    .attr('onclick', 'this.select();').attr('datafld', cols[i])
+                    .attr('placeholder', capitalizeFirstLetter(cols[i]));
+                td.append(input);
+            }
+        }
+        tr.append($('<td><input type="submit" class="btn btn-success" ' +
+            'onclick="formSubmit(this.parentElement.parentElement)" /></td>'));
+        tr.append($('<td><a role="button" class="btn btn-default" ' +
+            'onclick="removeRow(this.parentElement.parentElement);">Cancel</a></td>'));
+
+    });
+}
+
+function removeRow(e) {
+    $(e).remove();
+}
+
+function editRow(e) {
+    var row = $(e);
+    var obj = window.location.hash.substring(1);
+    row.attr('id', 'form').attr('name', obj);
+    var tds = row.children('td');
+    var relFields = tds.slice(0, tds.length - 2);
+    var headers = $('thead').find('th');
+    relFields.each(function(i, el) {
+        var value = $(el).text();
+        $(el).text('');
+        var col = capitalizeFirstLetter($(headers[i]).text());
+        var input = $('<input>').val(value).attr('type', 'text').attr('name', col)
+            .attr('onclick', 'this.select();').attr('datafld', col)
+        if (i == 0) {
+            input.prop('disabled', true);
+            input.width('100%');
+            $(el).width('30px');
+        }
+        $(el).append(input);
+    });
+    tds.last().find('a').removeClass('btn-danger').addClass('btn-default')
+        .text('Cancel').removeAttr('data-target data-toggle').click(function() {getData(obj, loadTable)});
+    tds.last().prev().find('a').removeClass('btn-info').addClass('btn-success').text('Save')
+        .attr('onclick', 'formSubmit(this.parentElement.parentElement)');
 }
 
 function dropdown() {
