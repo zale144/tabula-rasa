@@ -7,11 +7,18 @@ import (
 	"strconv"
 )
 
+func mapParameters(args []string) (string, string, string, string) {
+	name, id, spec, col := "", "", "", ""
+	params := []string{name, id, spec, col}
+	for i, arg := range args {
+		params[i] = arg
+	}
+	return params[0], params[1], params[2], params[3]
+}
+
 // get all entities
 func Get(args ...string) (string, error) {
-	name := args[0]
-	id := args[1]
-	spec := args[2]
+	name, id, spec, col := mapParameters(args)
 	single := false
 	query := "SELECT * FROM " + name
 	if id != "" && id != "0" {
@@ -22,8 +29,7 @@ func Get(args ...string) (string, error) {
 		query = `SELECT DISTINCT table_name FROM information_schema.columns
 		WHERE column_name in ('id') AND table_schema = 'superhero';`
 	} else if spec == "cols" {
-		query = `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-		WHERE TABLE_SCHEMA = 'superhero' AND TABLE_NAME = '` + name + "'"
+		query = makeColsInfo(name, col)
 	}
 	fmt.Println(query)
 	rows, err := Db.Query(query)
@@ -43,7 +49,16 @@ func Get(args ...string) (string, error) {
 		err = rows.Scan(dest...)
 		CheckError(err)
 		for i, raw := range rawResult {
-			result[i] = `"` + cols[i] + `" : "` + string(raw) + `"`
+			value := string(raw)
+			if strings.HasSuffix(cols[i], "_fk") {
+				childName, err := Get(name, "", "cols", cols[i])
+				childName = childName[29:len(childName)-3]
+				value, err = Get(childName, value)
+				CheckError(err)
+			} else {
+				value = `"` + value + `"`
+			}
+			result[i] = `"` + cols[i] + `" : ` + value
 		}
 		results = "{" + strings.Join(result, ", ") + "}"
 		objs = append(objs, results)
@@ -60,100 +75,133 @@ func Get(args ...string) (string, error) {
 
 // create entity
 func Create(name string, obj []byte) (string, error) {
-
-	//objMap := make(map[string]string)
-	//json.Unmarshal(obj, &objMap)
-	cols := []string{}
-	vals := []interface{}{}
-	placeholders := []string{}
-
-	str := strings.Replace(string(obj[1:len(obj)-1]), "\"", "", -1)
-	pairs := strings.Split(str, ",")
-	var id int64 = 0
-
-	for _, item := range pairs {
-		pair := strings.Split(item, ":")
-		cols = append(cols, pair[0])
-		vals = append(vals, pair[1])
-		if pair[0] == "Id" {
-			id, _ = strconv.ParseInt(pair[1], 0, 64)
-		}
-		placeholders = append(placeholders, "?")
-	}
-
-
+	pairs, id := unmarshalJson(obj)
 	var queryStr string
+	var values []interface{}
 
-	/*for k, v := range objMap {
-		cols = append(cols, k)
-		vals = append(vals, v)
-		if k == "Id" {
-			id, _ = strconv.ParseInt(v, 0, 64)
-		}
-		placeholders = append(placeholders, "?")
-	}*/
 	if name != "home" {
-		if id > 0 {
-			queryStr = `UPDATE ` + name + ` SET `
-			for i, el := range cols {
-				if el != "Id" {
-					queryStr += el + ` = '` + vals[i].(string) + `',`
-				}
-			}
-			queryStr = queryStr[:len(queryStr) - 1] + ` WHERE id = ` + strconv.FormatInt(id, 10)
-			vals = vals[:0]
-		} else {
-			colsStr := strings.Join(cols, ", ")
-			plcStr := strings.Join(placeholders, ",")
-			queryStr = "INSERT INTO " + name +
-				" (" + colsStr + ") VALUES (" + plcStr + ")"
-		}
+		queryStr, values = generateInsertUpdateString(name , id, pairs)
 	} else {
-		colsStr := ""
-		fkStr := ""
-		fk := ""
-		tableName := ""
-		for i, col := range cols {
-			if col == "Table name" {
-				tableName = vals[i].(string)
-				queryStr = `CREATE TABLE ` + tableName +
-					`(	id INT NOT NULL AUTO_INCREMENT, `
-			} else {
-				val := vals[i].(string)
-				if col == "REF" {
-					colsStr += val + `_id INT, `
-					fk = val
-				} else {
-						  //	name	  type
-					colsStr += val + ` ` + col + `,`
-				}
-			}
-		}
-		if fk != "" {
-			fkStr = `,` + makeForeignKey(tableName, fk)
-		}
-		queryStr += colsStr
-		queryStr += ` PRIMARY KEY (id),
-				UNIQUE INDEX id_UNIQUE (id ASC)
-			` + fkStr + `
-			)`
-		vals = vals[:0]
+		queryStr = generateCreateTableString(pairs)
 	}
 	stmt, err := Db.Prepare(queryStr)
 	fmt.Println(queryStr)
 	CheckError(err)
 	defer stmt.Close()
-	res, err := stmt.Exec(vals...)
+	res, err := stmt.Exec(values...)
 	CheckError(err)
 	id, _ = res.LastInsertId()
 	return Get(name, fmt.Sprint(id), "")
 }
 
-func makeForeignKey(this, ref string) string {
-	return `KEY fk_`+ this +`_`+ ref + `_id_idx (`+ ref +`_id),
-			  CONSTRAINT fk_`+ this +`_`+ ref + `_id
-			  FOREIGN KEY (`+ ref +`_id)
+func unmarshalJson(obj []byte) ([][]interface{}, int64) {
+	var id int64
+	pairList := [][]interface{}{}
+	str := string(obj[2:len(obj)-2])
+	pairs := strings.Split(str, `","`)
+	for _, item := range pairs {
+		pair := strings.Split(item, `":"`)
+		couple := []interface{}{}
+		for _, col := range pair {
+			couple = append(couple, col)
+		}
+		pairList = append(pairList, couple)
+		if pair[0] == "Id" {
+			id, _ = strconv.ParseInt(pair[1], 0, 64)
+		}
+	}
+	return pairList, id
+}
+
+func generateInsertUpdateString(name string, id int64, pairs [][]interface{}) (string, []interface{}) {
+	placeholders := generatePlaceholders(len(pairs))
+	values := []interface{}{}
+	queryStr := ""
+	if id > 0 {
+		queryStr = `UPDATE ` + name + ` SET `
+		for _, el := range pairs {
+			if el[0] != "Id" {
+				queryStr += el[0].(string) + ` = '` + el[1].(string) + `',`
+			}
+		}
+		queryStr = queryStr[:len(queryStr) - 1] + ` WHERE id = ` + strconv.FormatInt(id, 10)
+		pairs = pairs[:0]
+	} else {
+		colsStr := ""
+		for _, el := range pairs {
+			if el[0] != "Id" {
+				colsStr += ", `" + el[0].(string) + "` "
+			}
+			values = append(values, el[1])
+		}
+		queryStr = "INSERT INTO " + name +
+			" (" + colsStr[1:] + ") VALUES (" + placeholders + ")"
+	}
+	return queryStr, values;
+}
+
+func generateCreateTableString(pairs [][]interface{}) string {
+	queryStr := ""
+	colsStr := ""
+	fkStr := ""
+	fk := ""
+	tableName := ""
+	for _, pair := range pairs {
+		if pair[0] == "Table name" {
+			tableName = pair[1].(string)
+			queryStr = `CREATE TABLE ` + tableName +
+				`(	id INT NOT NULL AUTO_INCREMENT, `
+		} else {
+			col := pair[0].(string)
+			val := pair[1].(string)
+			if strings.HasSuffix(val, "_id") {
+				colsStr += col + `_fk INT, `
+				fk = val[:len(val) - 3]
+				fkStr += `,` + makeForeignKey(tableName, col, fk)
+			} else {
+				colsStr += " `" + col + "` " + val + ", "
+			}
+		}
+	}
+	queryStr += colsStr
+	queryStr += ` PRIMARY KEY (id),
+				UNIQUE INDEX id_UNIQUE (id ASC)
+			` + fkStr + `
+			)`
+	return queryStr
+}
+
+func generatePlaceholders(num int) string {
+	placehoders := ""
+	for i := 0; i < num; i++ {
+		placehoders += ",?"
+	}
+	return placehoders[1:]
+}
+
+func makeForeignKey(this, name, ref string) string {
+	return `KEY fk_`+ this +`_`+ name + `_id_idx (`+ name +`_fk),
+			  CONSTRAINT fk_`+ this +`_`+ name + `_id
+			  FOREIGN KEY (`+ name +`_fk)
 			  REFERENCES `+ ref +` (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
+}
+
+func makeColsInfo(tableName, colName string) string {
+	if colName != "" {
+		return `select kcu.referenced_table_name
+				from information_schema.key_column_usage kcu
+				WHERE kcu.TABLE_SCHEMA   = 'superhero'
+					AND  kcu.column_name   = '`+ colName +`'
+					AND  kcu.table_name = '`+ tableName +`'`
+	} else {
+		return `SELECT cols.column_name, cols.column_type ,
+				(select kcu.referenced_table_name from information_schema.key_column_usage kcu
+		WHERE kcu.TABLE_SCHEMA   = 'superhero'
+			AND  kcu.column_name   = cols.column_name
+			AND  kcu.table_name = '`+ tableName +`' limit 1) as referenced_table_name
+		FROM information_schema.columns cols
+			WHERE cols.TABLE_SCHEMA = 'superhero' and cols.table_name = '`+ tableName +`';`
+	}
 }
 
 // delete entity

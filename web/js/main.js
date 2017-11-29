@@ -1,7 +1,7 @@
 var cachedData = {'types':[
-        {id : 'INT',         name : 'Integer'},
-        {id : 'VARCHAR(45)', name : 'String'},
-        {id : 'FLOAT',       name : 'Decimal'},
+        {id : 'varchar(45)', name : 'Text'},
+        {id : 'int(11)',         name : 'Integer'},
+        {id : 'double',       name : 'Decimal'},
         {id : 'REF',         name : 'Reference'}]};
 
 $(document).ready(function() {
@@ -88,23 +88,23 @@ function formSubmit(e) {
     for (var i = 0; i < inputs.length; i++) {
         var fld = $(inputs[i]).attr('datafld');
         if (fld) {
-            var value = $(e).find($('[datafld="' + fld + '"]')).val();
-            if (value && obj === 'home') {
-                var key = $(e).find($('select[datafld="' + fld + '"][name="types"]')).val();
-                value = value.replace(/ /g, '_');
+            var attr = $(e).find($('[datafld="' + fld + '"]')).val();
+            if (attr && obj === 'home') {
+                var value = $(e).find($('select[datafld="' + fld + '"][name="types"]')).val();
+                attr = attr.replace(/ /g, '_');
                 if (i === 0) {
-                    data[inputs[i].name] = value;
+                    data[inputs[i].name] = attr;
                 } else {
-                    if (key === 'REF') {
+                    if (value === 'REF') {
                         var select = $(e).find($('select[datafld="' + fld + '"][name="home"]')).val();
-                        data[key] = select;
+                        data[fld] = select + '_id';
                     } else {
-                        data[key] = value;
+                        data[attr] = value;
                     }
                 }
             } else {
-                var attr = $(inputs[i]).attr('datafld');
-                data[attr] = value;
+                var key = $(inputs[i]).attr('datafld');
+                data[key] = attr;
             }
         }
     }
@@ -267,9 +267,10 @@ function loadTableHeaders(headers, keys) {
     headers.append(tH);
     for(var k = 0; k < keys.length; k++) {
         var key = keys[k];
-        if (key.endsWith("_id")) {
+        if (key.endsWith("_fk")) {
             key = key.substring(0, key.length-3);
         }
+        key = key.replace(/_/g, ' ');
         tH.append($('<th>' + capitalizeFirstLetter(key) + '</th>'));
     }
     tH.append($('<th>Edit</th>')).append($('<th>Delete</th>'));
@@ -307,7 +308,7 @@ function loadAddEditPage(obj, id) {
         getData(obj + '/cols', function(data) {
             var cols = [];
             for (var d in data) {
-                cols.push(data[d].COLUMN_NAME);
+                cols.push(data[d].Field);
             }
             createFields(obj, cols);
         });
@@ -392,8 +393,15 @@ function addRow(obj) {
     getData(obj + '/cols', function(data) {
         var headers = $('thead');
         var cols = [];
+        var types = [];
         for (var d in data) {
-            cols.push(data[d].COLUMN_NAME);
+            cols.push(data[d].column_name);
+            if (data[d].referenced_table_name !== '') {
+                types.push({'REF': data[d].referenced_table_name});
+            } else {
+                var type = $.grep(cachedData.types, function(e){ return e.id == data[d].column_type; })[0];
+                types.push(type.name);
+            }
         }
         if (headers.children().length === 0) {
             loadTableHeaders(headers, cols);
@@ -408,14 +416,20 @@ function addRow(obj) {
             var td = $('<td>');
             tr.append(td);
             if (i > 0) {
-                var name = cols[i].substring(0, cols[i].length - 3);
-                if (cols[i].endsWith('_id')) {
-                    dropdown(name, cols[i], td);
+                if (types[i].REF) {
+                    dropdown(types[i].REF, cols[i], td);
                 } else {
-                   var input = $('<input>').attr('type', 'text').attr('name', cols[i])
+                    var input = $('<input>').attr('name', cols[i])
                         .attr('onclick', 'this.select();').attr('datafld', cols[i])
                         .attr('placeholder', capitalizeFirstLetter(cols[i]));
                     td.append(input);
+                    if ($.inArray(types[i], ['Integer', 'Decimal']) !== -1) {
+                        input.attr('type', 'number');
+                        if (types[i] === 'Decimal') {
+                            input.attr('step', '0.01');
+                        }
+                    }
+
                 }
             }
         }
