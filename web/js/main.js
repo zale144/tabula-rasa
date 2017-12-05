@@ -5,6 +5,19 @@ var cachedData = {'types':[
         {id : 'REF',         name : 'Reference'}]};
 
 $(document).ready(function() {
+    (function($) {
+        $.fn.changeElementType = function(newType) {
+            var attrs = {};
+
+            $.each(this[0].attributes, function(idx, attr) {
+                attrs[attr.nodeName] = attr.nodeValue;
+            });
+
+            this.replaceWith(function() {
+                return $("<" + newType + "/>", attrs).append($(this).contents());
+            });
+        };
+    })(jQuery);
     loadTabs();
     var links = $('[rel="import"]');
     $.each(links, function(ind, link) {
@@ -70,33 +83,63 @@ $(document).ready(function() {
         $('.btn-ok', this).data('id', id);
     });
 
-    $(document).on('keydown', 'input[datafld]', function (e) {
-        if (e.which == 13) {
+    $(document).on('keydown', function (e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            //this.blur();
+            window.focus();
             $('.btn-success').click();
+            formProcess(this.activeElement.parentElement);
             return false;
         }
     });
+
+    $(function() {
+        /*$('*:not(input,select,td)').click(function() {
+            if ($('.emptyDropdown').length > 0) {
+                formProcess();
+            }
+            return false;
+        });*/
+
+    });
+
 });
 
-function formSubmit(e) {
-    var idfld = $(e).find($('[datafld="id"]'));
-    var id = idfld.val()?idfld.val():"";
-    var inputs = $(e).find('input, select');
-    var obj = $(e).attr("name");
+function saveAjax(data, obj, after) {
+    $.ajax({
+        type: 'POST',
+        url: "/rest/" + obj,
+        data: JSON.stringify(data),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        'dataType': 'json',
+        success: function(newData) {
+            after();
+        }
+    });
+}
+
+function formProcess(e) {
+    //var caller = $(e.parentElement);
+    var inputs = $('input, select');
+    var obj = $('table, form').attr('name');
     var data = {};
 
     for (var i = 0; i < inputs.length; i++) {
         var fld = $(inputs[i]).attr('datafld');
         if (fld) {
-            var attr = $(e).find($('[datafld="' + fld + '"]')).val();
+            var attr = /*caller.find(*/$('[datafld="' + fld + '"]')/*)*/.val();
             if (attr && obj === 'home') {
-                var value = $(e).find($('select[datafld="' + fld + '"][name="types"]')).val();
+                var value = /*caller.find(*/$('select[datafld="' + fld + '"][name="types"]')/*)*/.val();
                 attr = attr.replace(/ /g, '_');
                 if (i === 0) {
                     data[inputs[i].name] = attr;
                 } else {
                     if (value === 'REF') {
-                        var select = $(e).find($('select[datafld="' + fld + '"][name="home"]')).val();
+                        var select =/*caller.find(*/$('select[datafld="' + fld + '"][name="home"]')/*)*/.val();
                         data[fld] = select + '_id';
                     } else {
                         data[attr] = value;
@@ -108,27 +151,14 @@ function formSubmit(e) {
             }
         }
     }
-    $.ajax({
-        type: 'POST',
-        url: "/rest/" + obj,
-        data: JSON.stringify(data),
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        'dataType': 'json',
-        success: function(newData, status) {
-            if (newData) {
-                id = newData.id;
-            }
-            cachedData[obj] = [];
-            if (obj === 'home') {
-                obj = data['Table name'];
-                loadTabs();
-                window.location.href = "#" + obj;
-            }
-            getData(obj, loadTable);
+    saveAjax(data, obj, function () {
+        cachedData[obj] = [];
+        if (obj === 'home') {
+            obj = data['Table name'];
+            loadTabs();
+            window.location.href = "#" + obj;
         }
+        getData(obj, loadTable);
     });
 }
 
@@ -200,11 +230,11 @@ function loadTable(data, obj) {
         addButton.removeAttr('href');
         addButton.attr('onclick', 'addRow("' + obj + '")').attr('role', 'button');
     }
-    var table = $('<table></table>').addClass('table table-bordered');
+    var table = $('<table>').addClass('table table-bordered').attr('name', obj);
     var grid = $('#grid');
     grid.empty();
-    var headers = $('<thead></thead>');
-    var contentRows = $('<tbody></tbody>');
+    var headers = $('<thead>');
+    var contentRows = $('<tbody>');
 
     grid.append(table);
     table.append(contentRows);
@@ -214,43 +244,50 @@ function loadTable(data, obj) {
         var keys = Object.keys(data[0]);
         loadTableHeaders(headers, keys);
         $.each(data, function (index, item) {
-            var row = $('<tr></tr>');
+            var row = $('<tr>');
             contentRows.append(row);
-            row.append($('<input type="hidden" value="' + item.id + '" />'));
-            for (var k in keys) {
-                var td = $('<td></td>');
+            row.append($('<input type="hidden" value="' + item.id + '" />').attr('datafld', 'id'));
+            for (var k = 0; k < keys.length; k++) {
+                var td = $('<td>');
+                if (k === 0) {
+                    td.addClass('col-md-1');
+                } else {
+                    td.addClass('col-md-2').attr('onclick', 'editCell(this);');
+                }
                 row.append(td);
                 if (item[keys[k]]) {
                     var str;
                     if (item[keys[k]] instanceof  Object &&
                         !(item[keys[k]] instanceof  Array)) {
-                        str = item[keys[k]].name;
+                        str = $('<div>').text(item[keys[k]].name)
                     } else if (keys[k] === 'date') {
                         str = $('<a href="' + "" + item.id + '" >' + formatDate(item[keys[k]]) + '</a>');
                     } else if (item[keys[k]] instanceof  Array) {
-                        str = $('<ul></ul>');
+                        str = $('<ul>');
                         item[keys[k]].forEach(function(e) {
                             str.append($('<li>' + e.name + '</li>'));
                         });
                     } else {
-                        str = (k === 1)?$('<a href="' + "" + item.id + '" >' + item[keys[k]] + '</a>'): item[keys[k]];
+                        str = (k === 1)?$('<a href="' + "" + item.id + '" >' + item[keys[k]] + '</a>'): $('<div>')
+                            .text(item[keys[k]]);
                     }
                     td.append(str);
                 }
 
             }
-            var etd = $('<td>');
-            var editBtn = $('<a role="button" class="btn" >')
-            etd.append(editBtn)
+            var etd = $('<td>').addClass('col-md-1');
+            var editBtn = $('<a role="button" class="btn" >');
+            etd.append(editBtn);
             row.append(etd);
             if (obj === 'home') {
-                editBtn.addClass('btn-default').attr('onclick', 'window.location.href = "#" + $(":nth-child(2)", this.parentElement.parentElement).text()')
+                editBtn.addClass('btn-default').attr('onclick', 'window.location.href = "#" + $(":nth-child(2)", ' +
+                    'this.parentElement.parentElement).text()')
                     .text('View');
             } else {
                 editBtn.addClass('btn-info').attr('onclick', 'editRow(this.parentElement.parentElement)').text('Edit');
             }
             row.append($('<td><a role="button" class="btn btn-danger" data-toggle="modal" ' +
-                ' data-target="#confirm-delete">Delete</a></td>'));
+                ' data-target="#confirm-delete">Delete</a></td>').addClass('col-md-1'));
         });
     }
 
@@ -284,12 +321,6 @@ function loadAjax(obj, func) {
             var jsonData = JSON.parse(data);
             cachedData[obj] = jsonData;
             func(jsonData, obj);
-        },
-        error: function() {
-            $('#errorMessages')
-                .append($('<li>')
-                    .attr({class: 'list-group-item list-group-item-danger'})
-                    .text('Error calling web service.  Please try again later.'));
         }
     });
 }
@@ -372,11 +403,11 @@ function addColumn(e) {
         var label = $('<label>Type</label>').attr('for', name);
         li.append(fIn);
         li.append(label);
-        dropdown('types', name, li)
+        dropdown('types', name, li);
         addedCols.append(li);
         input.val('');
         $('select[name="types"][datafld="' + name + '"]').change(function(e) {
-            if(this.value == 'REF') {
+            if(this.value === 'REF') {
                 fIn.siblings('label').remove();
                 dropdown('home', name, li);
             } else {
@@ -391,56 +422,102 @@ function addColumn(e) {
 
 function addRow(obj) {
     getData(obj + '/cols', function(data) {
-        var headers = $('thead');
+        var body = $('#grid').find('tbody');
+        var form = $('<form>').attr('id', 'form').attr('name', obj)
+
+        tr = $('<tr>').attr('name', obj);
+        form.append(tr);
+        body.append(tr);
         var cols = [];
-        var types = [];
-        for (var d in data) {
-            cols.push(data[d].column_name);
-            if (data[d].referenced_table_name !== '') {
-                types.push({'REF': data[d].referenced_table_name});
-            } else {
-                var type = $.grep(cachedData.types, function(e){ return e.id == data[d].column_type; })[0];
-                types.push(type.name);
-            }
-        }
+        openRowInputs(tr, obj, data, cols);
+
+        var headers = $('thead');
         if (headers.children().length === 0) {
             loadTableHeaders(headers, cols);
         }
-        var body = $('#grid').find('tbody');
-        var form = $('<form>').attr('id', 'form').attr('name', obj)
-            .attr('onsubmit', 'event.preventDefault();formSubmit(this);');
-        var tr = $('<tr>').attr('name', obj);
-        form.append(tr);
-        body.append(tr);
-        for (var i = 0; i < cols.length; i++) {
-            var td = $('<td>');
-            tr.append(td);
-            if (i > 0) {
-                if (types[i].REF) {
-                    dropdown(types[i].REF, cols[i], td);
-                } else {
-                    var input = $('<input>').attr('name', cols[i])
-                        .attr('onclick', 'this.select();').attr('datafld', cols[i])
-                        .attr('placeholder', capitalizeFirstLetter(cols[i]));
-                    td.append(input);
-                    if ($.inArray(types[i], ['Integer', 'Decimal']) !== -1) {
-                        input.attr('type', 'number');
-                        if (types[i] === 'Decimal') {
-                            input.attr('step', '0.01');
-                        }
-                    }
-
-                }
-            }
-        }
         tr.append($('<td><input type="submit" class="btn btn-success" ' +
-            'onclick="formSubmit(this.parentElement.parentElement)" /></td>'));
+            'onclick="formProcess(this.parentElement)" /></td>'));
         tr.append($('<td><a role="button" class="btn btn-default" ' +
-            'onclick="removeRow(this.parentElement.parentElement);">Cancel</a></td>'));
+            'onclick="$(this.parentElement.parentElement).remove();">Cancel</a></td>'));
         if ($("input:text:visible:not(:disabled):first").get(0)) {
             $("input:text:visible:not(:disabled):first").get(0).focus();
         }
     });
+}
+
+function openRowInputs(tr, obj, data, cols, rowData) {
+    var types = [];
+    getColsAndTypes(data, cols, types);
+    for (var i = 0; i < cols.length; i++) {
+        var inputVal;
+        var td = $('<td>').addClass('col-md-1');
+        tr.append(td);
+        if (rowData) {
+            inputVal = rowData[i];
+            td.addClass('col-md-2');
+        }
+        if (rowData || i > 0) {
+            openCellInput(td, cols[i], types[i], inputVal);
+        }
+    }
+}
+
+function openCellInput(td, col, type, inputVal) {
+    td.empty();
+    if (type.REF) {
+        dropdown(type.REF, col, td, inputVal);
+    } else {
+        var input = $('<input>').attr('name', col)
+            .attr('onclick', 'this.select();').attr('datafld', col)
+            .attr('placeholder', capitalizeFirstLetter(col)).val(inputVal);
+        if ($('[datafld]:not([type=hidden])').length == 0) {
+            input.attr('onblur', 'reloadTable();');
+        }
+
+        td.append(input);
+
+        if ($.inArray(type, ['Integer', 'Decimal']) !== -1) {
+            input.attr('type', 'number').val(input.val()?input.val():0);
+            if (type === 'Decimal') {
+                input.attr('step', '0.01');
+            }
+        }
+    }
+}
+
+function editCell(e) {
+    var td = $(e);
+    td.removeAttr('onclick');
+    var value = td.text();
+    var obj = td.parent().parent().parent().attr('name');
+    td.parent().attr('name', obj);
+    var types = [];
+    var cols = [];
+    getData(obj + '/cols', function(data) {
+        getColsAndTypes(data, cols, types);
+        var col = cols[td.index()-1];
+        var type = types[td.index()-1];
+        openCellInput(td, col, type, value);
+        $("input:visible:not(:disabled,:submit)").focus();
+    });
+}
+
+function reloadTable() {
+    var obj = window.location.hash.substring(1);
+    getData(obj, loadTable);
+}
+
+function getColsAndTypes(data, cols, types) {
+    for (var d = 0; d < data.length; d++) {
+        cols.push(data[d].column_name);
+        if (data[d].referenced_table_name !== '') {
+            types.push({'REF': data[d].referenced_table_name});
+        } else {
+            var type = $.grep(cachedData.types, function(e){
+                return e.id === data[d].column_type; })[0];
+            types.push(type.name);
+        }
+    }
 }
 
 function checkColumns(e) {
@@ -451,42 +528,41 @@ function checkColumns(e) {
     } else if ($('#addedCols').is(':empty')) {
         alert('Please add at lease one column before saving');
     } else {
-        formSubmit(e);
+        formProcess(e);
     }
 }
 
-function removeRow(e) {
-    $(e).remove();
-}
-
 function editRow(e) {
-    var row = $(e);
-    var obj = window.location.hash.substring(1);
-    row.attr('id', 'form').attr('name', obj);
-    var tds = row.children('td');
-    var relFields = tds.slice(0, tds.length - 2);
-    var headers = $('thead').find('th');
-    relFields.each(function(i, el) {
-        var value = $(el).text();
-        $(el).text('');
-        var col = capitalizeFirstLetter($(headers[i]).text());
-        var input = $('<input>').val(value).attr('type', 'text').attr('name', col)
-            .attr('onclick', 'this.select();').attr('datafld', col);
-        if (i === 0) {
-            input.prop('disabled', true);
-            input.width('100%');
-            $(el).width('30px');
-        }
-        $(el).append(input);
+    var obj = $(e).parent().parent().attr('name');
+    getData(obj + '/cols', function(data) {
+
+        var row = $(e);
+        var rowData = row.children("td").map(function() {
+            return $(this).text();
+        }).get();
+
+        var obj = window.location.hash.substring(1);
+        row.attr('id', 'form').attr('name', obj);
+        row.children().slice(2, row.children().length-2).remove();
+        var cols = [];
+        tr = $('<tr>').attr('name', obj);
+        row.parent().append(tr);
+        openRowInputs(tr, obj, data, cols, rowData);
+        $.each(tr.children(), function(i, td) {
+            if (i > 0) {
+                row.children().eq(i).after(td);
+            }
+        });
+        tr.remove();
+        row.children().last().find('a').removeClass('btn-danger').addClass('btn-default')
+            .text('Cancel').removeAttr('data-target data-toggle').click(function() {getData(obj, loadTable)});
+        row.children().last().prev().find('a').removeClass('btn-info').addClass('btn-success').text('Save')
+            .attr('onclick', 'formProcess(this.parentElement)');
+        $("input:text:visible:not(:disabled):first").focus();
     });
-    tds.last().find('a').removeClass('btn-danger').addClass('btn-default')
-        .text('Cancel').removeAttr('data-target data-toggle').click(function() {getData(obj, loadTable)});
-    tds.last().prev().find('a').removeClass('btn-info').addClass('btn-success').text('Save')
-        .attr('onclick', 'formSubmit(this.parentElement.parentElement)');
-    $("input:text:visible:not(:disabled):first").get(0).focus();
 }
 
-function dropdown(name, datafld, parent) {
+function dropdown(name, datafld, parent, value) {
     var select = $('<select>').addClass('emptyDropdown').attr('name', name).attr('datafld', datafld);
     parent.append(select)
     getData(name, function(data) {
@@ -496,6 +572,8 @@ function dropdown(name, datafld, parent) {
             option.value = (name==='home')?d.table_name:d.id;
             select.append(option);
         });
+        $('.emptyDropdown').attr('onblur', 'reloadTable();').focus();
+        $('select option:contains("' + value + '")').attr("selected","selected");
     });
 }
 

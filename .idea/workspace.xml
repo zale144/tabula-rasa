@@ -7,6 +7,7 @@
       <change beforePath="" afterPath="$PROJECT_DIR$/../github.com/zale144/goLearning" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/dao/dao.go" afterPath="$PROJECT_DIR$/dao/dao.go" />
+      <change beforePath="$PROJECT_DIR$/web/html/index.html" afterPath="$PROJECT_DIR$/web/html/index.html" />
       <change beforePath="$PROJECT_DIR$/web/js/main.js" afterPath="$PROJECT_DIR$/web/js/main.js" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -18,34 +19,62 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="dao.go" pinned="false" current-in-tab="true">
+      <file leaf-file-name="dao.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dao/dao.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-17">
-              <caret line="10" column="40" lean-forward="false" selection-start-line="10" selection-start-column="40" selection-end-line="10" selection-end-column="40" />
+            <state relative-caret-position="3026">
+              <caret line="178" column="27" lean-forward="false" selection-start-line="178" selection-start-column="27" selection-end-line="178" selection-end-column="27" />
               <folding>
-                <element signature="e#13#74#0" expanded="true" />
+                <element signature="e#13#90#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/web/js/main.js">
+      <file leaf-file-name="front_controller.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/controller/front_controller.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="134">
-              <caret line="272" column="14" lean-forward="false" selection-start-line="272" selection-start-column="14" selection-end-line="272" selection-end-column="14" />
+            <state relative-caret-position="34">
+              <caret line="2" column="7" lean-forward="true" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+              <folding>
+                <element signature="e#20#163#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="34">
+              <caret line="2" column="8" lean-forward="true" selection-start-line="2" selection-start-column="8" selection-end-line="2" selection-end-column="8" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/web/html/index.html">
+      <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/web/js/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="771">
-              <caret line="68" column="7" lean-forward="true" selection-start-line="68" selection-start-column="7" selection-end-line="68" selection-end-column="7" />
-              <folding />
+            <state relative-caret-position="209">
+              <caret line="574" column="7" lean-forward="false" selection-start-line="574" selection-start-column="7" selection-end-line="574" selection-end-column="7" />
+              <folding>
+                <element signature="e#26#223#0" expanded="false" />
+                <element signature="n#!!block;n#saveAjax#0" expanded="false" />
+                <element signature="n#!!block;n#render#0" expanded="false" />
+                <element signature="n#!!block;n#getPage#0" expanded="false" />
+                <element signature="n#!!block;n#getData#0" expanded="false" />
+                <element signature="n#!!block;n#loadTabs#0" expanded="false" />
+                <element signature="n#!!block;n#loadTableHeaders#0" expanded="false" />
+                <element signature="n#!!block;n#loadAjax#0" expanded="false" />
+                <element signature="n#!!block;n#loadAddEditPage#0" expanded="false" />
+                <element signature="n#!!block;n#addColumn#0" expanded="false" />
+                <element signature="n#!!block;n#addRow#0" expanded="false" />
+                <element signature="n#!!block;n#openRowInputs#0" expanded="false" />
+                <element signature="n#!!block;n#checkColumns#0" expanded="false" />
+                <element signature="n#!!block;n#editRow#0" expanded="false" />
+                <element signature="n#!!block;n#capitalizeFirstLetter#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -63,25 +92,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>related</find>
-      <find>alert</find>
-      <find>editInput</find>
-      <find>formSufbmit</find>
-      <find>formSubmit</find>
-      <find>insert</find>
-      <find>addRow</find>
-      <find>entity</find>
-      <find>create table</find>
-      <find>loadAddEditPage</find>
-      <find>please</find>
-      <find>Please</find>
-      <find>select</find>
-      <find>ropdown(</find>
-      <find>emptyDropdown</find>
-      <find>drop</find>
-      <find>dropdown(</find>
-      <find>addColumn</find>
-      <find>ref</find>
       <find>htype</find>
       <find>dropdown</find>
       <find>/cols</find>
@@ -92,7 +102,26 @@
       <find>step</find>
       <find>key</find>
       <find>headers</find>
+      <find>generateInsertUpdateString</find>
       <find>'_'</find>
+      <find>formSubmit</find>
+      <find>removeRow</find>
+      <find>getTypes</find>
+      <find>addRow</find>
+      <find>openRowInputs</find>
+      <find>document</find>
+      <find>location.hash</find>
+      <find>e.</find>
+      <find>this.parent</find>
+      <find>'formProcess(</find>
+      <find>decimal</find>
+      <find>r d = 0; i &lt; da</find>
+      <find>ol</find>
+      <find>var obj</find>
+      <find>editCell</find>
+      <find>unblur</find>
+      <find>onblur</find>
+      <find>hidden</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="C:\Go" />
@@ -147,9 +176,10 @@
         <option value="$PROJECT_DIR$/controller/front_controller.go" />
         <option value="$PROJECT_DIR$/web/html/overview.html" />
         <option value="$PROJECT_DIR$/web/html/addEdit.html" />
-        <option value="$PROJECT_DIR$/web/html/index.html" />
-        <option value="$PROJECT_DIR$/web/js/main.js" />
         <option value="$PROJECT_DIR$/dao/dao.go" />
+        <option value="$PROJECT_DIR$/web/html/index.html" />
+        <option value="$PROJECT_DIR$/test.go" />
+        <option value="$PROJECT_DIR$/web/js/main.js" />
       </list>
     </option>
   </component>
@@ -159,11 +189,10 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="29" />
-    <option name="y" value="-16" />
-    <option name="width" value="1378" />
-    <option name="height" value="733" />
+  <component name="ProjectFrameBounds" extendedState="7">
+    <option name="x" value="676" />
+    <option name="width" value="697" />
+    <option name="height" value="735" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -181,13 +210,17 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
               <item name="tabula-rasa" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
+              <item name="tabula-rasa" type="462c0819:PsiDirectoryNode" />
+              <item name="controller" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
@@ -211,48 +244,12 @@
               <item name="web" type="462c0819:PsiDirectoryNode" />
               <item name="js" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-            </path>
-            <path>
-              <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Go SDK 1.9.2" type="20ee2d1f:SyntheticLibraryElementNode" />
-            </path>
-            <path>
-              <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Go SDK 1.9.2" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Go SDK 1.9.2" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="context" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Go SDK 1.9.2" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="database" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tabula-rasa" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Go SDK 1.9.2" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="database" type="462c0819:PsiDirectoryNode" />
-              <item name="sql" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -281,7 +278,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Go Application.tabula-rasa">
     <configuration name="tabula-rasa" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="tabula-rasa" />
       <working_directory value="$PROJECT_DIR$/" />
@@ -289,6 +286,14 @@
       <kind value="FILE" />
       <filePath value="$PROJECT_DIR$/main.go" />
       <package value="simple_server" />
+      <directory value="$PROJECT_DIR$/" />
+    </configuration>
+    <configuration name="test.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
+      <module name="tabula-rasa" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/test.go" />
       <directory value="$PROJECT_DIR$/" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
@@ -299,6 +304,15 @@
       <kind value="DIRECTORY" />
       <package value="simple_server" />
     </configuration>
+    <list size="2">
+      <item index="0" class="java.lang.String" itemvalue="Go Application.tabula-rasa" />
+      <item index="1" class="java.lang.String" itemvalue="Go Application.test.go" />
+    </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="Go Application.test.go" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
@@ -313,19 +327,19 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <frame x="-8" y="-8" width="1376" height="744" extended-state="7" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12632374" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2363222" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32900432" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2478355" sideWeight="0.5021322" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.375817" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32900432" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.375817" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3267974" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20915033" sideWeight="0.4978678" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14215687" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21405229" sideWeight="0.4978678" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -362,12 +376,17 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="144" />
+      <option name="time" value="151" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateCodeFragment">
+      <expression>
+        <expression-string>pairs[i]</expression-string>
+        <language-id>go</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>string(obj)</expression-string>
         <language-id>go</language-id>
@@ -430,18 +449,25 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/web/js/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dao/sightings_dao.go" />
-    <entry file="file://$PROJECT_DIR$/web/js/main.js">
-      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2839">
           <caret line="167" column="37" lean-forward="false" selection-start-line="167" selection-start-column="36" selection-end-line="167" selection-end-column="37" />
-          <folding />
+          <folding>
+            <element signature="e#26#223#0" expanded="false" />
+            <element signature="n#!!block;n#saveAjax#0" expanded="false" />
+            <element signature="n#!!block;n#render#0" expanded="false" />
+            <element signature="n#!!block;n#getPage#0" expanded="false" />
+            <element signature="n#!!block;n#getData#0" expanded="false" />
+            <element signature="n#!!block;n#loadTabs#0" expanded="false" />
+            <element signature="n#!!block;n#loadTableHeaders#0" expanded="false" />
+            <element signature="n#!!block;n#loadAjax#0" expanded="false" />
+            <element signature="n#!!block;n#loadAddEditPage#0" expanded="false" />
+            <element signature="n#!!block;n#addColumn#0" expanded="false" />
+            <element signature="n#!!block;n#addRow#0" expanded="false" />
+            <element signature="n#!!block;n#openRowInputs#0" expanded="false" />
+            <element signature="n#!!block;n#checkColumns#0" expanded="false" />
+            <element signature="n#!!block;n#editRow#0" expanded="false" />
+            <element signature="n#!!block;n#capitalizeFirstLetter#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -511,7 +537,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
           <caret line="133" column="5" lean-forward="false" selection-start-line="133" selection-start-column="5" selection-end-line="133" selection-end-column="5" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -563,7 +588,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
           <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -571,9 +595,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="272">
           <caret line="16" column="1" lean-forward="true" selection-start-line="16" selection-start-column="1" selection-end-line="16" selection-end-column="1" />
-          <folding>
-            <element signature="e#17#46#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -581,15 +602,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
           <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/controller/front_controller.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="731">
-          <caret line="51" column="0" lean-forward="false" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -597,14 +609,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="63">
           <caret line="1799" column="67" lean-forward="false" selection-start-line="1799" selection-start-column="67" selection-end-line="1799" selection-end-column="67" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/web/html/overview.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="10" column="29" lean-forward="true" selection-start-line="10" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -615,19 +619,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/web/html/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="771">
-          <caret line="68" column="7" lean-forward="true" selection-start-line="68" selection-start-column="7" selection-end-line="68" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/Go/src/database/sql/convert.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-332">
           <caret line="114" column="50" lean-forward="false" selection-start-line="114" selection-start-column="50" selection-end-line="114" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -635,7 +630,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
           <caret line="2100" column="23" lean-forward="false" selection-start-line="2100" selection-start-column="23" selection-end-line="2100" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -643,24 +637,80 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="228">
           <caret line="232" column="0" lean-forward="false" selection-start-line="232" selection-start-column="0" selection-end-line="232" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Go/src/strings/strings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="837" column="5" lean-forward="false" selection-start-line="837" selection-start-column="5" selection-end-line="837" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dao/dao.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3026">
+          <caret line="178" column="27" lean-forward="false" selection-start-line="178" selection-start-column="27" selection-end-line="178" selection-end-column="27" />
+          <folding>
+            <element signature="e#13#90#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/controller/front_controller.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="7" lean-forward="true" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+          <folding>
+            <element signature="e#20#163#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="8" lean-forward="true" selection-start-line="2" selection-start-column="8" selection-end-line="2" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/web/html/overview.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="29" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/web/html/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="22" column="23" lean-forward="false" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="23" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/web/js/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="134">
-          <caret line="272" column="14" lean-forward="false" selection-start-line="272" selection-start-column="14" selection-end-line="272" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dao/dao.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-17">
-          <caret line="10" column="40" lean-forward="false" selection-start-line="10" selection-start-column="40" selection-end-line="10" selection-end-column="40" />
+        <state relative-caret-position="209">
+          <caret line="574" column="7" lean-forward="false" selection-start-line="574" selection-start-column="7" selection-end-line="574" selection-end-column="7" />
           <folding>
-            <element signature="e#13#74#0" expanded="true" />
+            <element signature="e#26#223#0" expanded="false" />
+            <element signature="n#!!block;n#saveAjax#0" expanded="false" />
+            <element signature="n#!!block;n#render#0" expanded="false" />
+            <element signature="n#!!block;n#getPage#0" expanded="false" />
+            <element signature="n#!!block;n#getData#0" expanded="false" />
+            <element signature="n#!!block;n#loadTabs#0" expanded="false" />
+            <element signature="n#!!block;n#loadTableHeaders#0" expanded="false" />
+            <element signature="n#!!block;n#loadAjax#0" expanded="false" />
+            <element signature="n#!!block;n#loadAddEditPage#0" expanded="false" />
+            <element signature="n#!!block;n#addColumn#0" expanded="false" />
+            <element signature="n#!!block;n#addRow#0" expanded="false" />
+            <element signature="n#!!block;n#openRowInputs#0" expanded="false" />
+            <element signature="n#!!block;n#checkColumns#0" expanded="false" />
+            <element signature="n#!!block;n#editRow#0" expanded="false" />
+            <element signature="n#!!block;n#capitalizeFirstLetter#0" expanded="false" />
           </folding>
         </state>
       </provider>
