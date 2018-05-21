@@ -73,7 +73,7 @@ func generateSelectString(single *bool, args ...string, ) string {
 		*single = true
 	} else if name == "home" {
 		query = `SELECT DISTINCT table_name FROM information_schema.columns
-		WHERE column_name in ('id') AND table_schema = 'superhero';`
+		WHERE column_name in ('id') AND table_schema = 'superuser';`
 	} else if spec == "cols" {
 		query = makeColsInfo(name, col)
 	}
@@ -193,17 +193,17 @@ func makeColsInfo(tableName, colName string) string {
 	if colName != "" {
 		return `select kcu.referenced_table_name
 				from information_schema.key_column_usage kcu
-				WHERE kcu.TABLE_SCHEMA   = 'superhero'
+				WHERE kcu.TABLE_SCHEMA   = 'superuser'
 					AND  kcu.column_name   = '`+ colName +`'
 					AND  kcu.table_name = '`+ tableName +`'`
 	} else {
 		return `SELECT cols.column_name, cols.column_type ,
 				(select kcu.referenced_table_name from information_schema.key_column_usage kcu
-		WHERE kcu.TABLE_SCHEMA   = 'superhero'
+		WHERE kcu.TABLE_SCHEMA   = 'superuser'
 			AND  kcu.column_name   = cols.column_name
 			AND  kcu.table_name = '`+ tableName +`' limit 1) as referenced_table_name
 		FROM information_schema.columns cols
-			WHERE cols.TABLE_SCHEMA = 'superhero' and cols.table_name = '`+ tableName +`';`
+			WHERE cols.TABLE_SCHEMA = 'superuser' and cols.table_name = '`+ tableName +`';`
 	}
 }
 

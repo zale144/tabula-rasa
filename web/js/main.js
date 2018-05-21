@@ -1,4 +1,4 @@
-var cachedData = {'types':[
+let cachedData = {'types':[
         {id : 'varchar(45)', name : 'Text'},
         {id : 'int(11)',         name : 'Integer'},
         {id : 'double',       name : 'Decimal'},
@@ -7,7 +7,7 @@ var cachedData = {'types':[
 $(document).ready(function() {
     (function($) {
         $.fn.changeElementType = function(newType) {
-            var attrs = {};
+            let attrs = {};
 
             $.each(this[0].attributes, function(idx, attr) {
                 attrs[attr.nodeName] = attr.nodeValue;
@@ -19,10 +19,10 @@ $(document).ready(function() {
         };
     })(jQuery);
     loadTabs();
-    var links = $('[rel="import"]');
+    let links = $('[rel="import"]');
     $.each(links, function(ind, link) {
-        var content = link.import.querySelector('template').content;
-        var clone = document.importNode(content, true);
+        let content = link.import.querySelector('template').content;
+        let clone = document.importNode(content, true);
         document.querySelector('#content').appendChild(clone);
     });
     $('.fragment').hide();
@@ -38,10 +38,10 @@ $(document).ready(function() {
     }
 
     $('#confirm-delete').on('click','.btn-ok',function(e) {
-        var $modalDiv = $(e.delegateTarget);
-        var id = $(this).data('id');
-        var obj = $('h1').text();
-        var deleteUrl = "/rest/" + obj + "?id=" + id;
+        let $modalDiv = $(e.delegateTarget);
+        let id = $(this).data('id');
+        let obj = $('h1').text();
+        let deleteUrl = "/rest/" + obj + "?id=" + id;
 
         $modalDiv.addClass('loading');
         $.ajax({
@@ -52,9 +52,9 @@ $(document).ready(function() {
                 cachedData[obj] = $.grep(cachedData[obj], function (o) {
                         return o.id == id || o[Object.keys(o)[0]] == id }, true);
                 /*for (l in cachedData) {
-                    var list = cachedData[l];
+                    let list = cachedData[l];
                     for(e in list) {
-                        var keys = Object.keys(list[e]);
+                        let keys = Object.keys(list[e]);
                         for(f in keys) {
                             if(obj.includes(keys[f]) && list[e][keys[f]].id == id) {
                                 list[e][keys[f]] = undefined;
@@ -69,11 +69,11 @@ $(document).ready(function() {
     });
 
     $('#confirm-delete').on('show.bs.modal',function(e) {
-        var data = $(e.relatedTarget)
+        let data = $(e.relatedTarget)
             .parent().parent()
             .children();
-        var title = data.eq(2).text();
-        var id = data.eq(1).text();
+        let title = data.eq(2).text();
+        let id = data.eq(1).text();
         if (data.length <= 4) {
             title = id;
         }
@@ -88,7 +88,7 @@ $(document).ready(function() {
             e.preventDefault();
             //this.blur();
             window.focus();
-            $('.btn-success').click();
+            //$('.btn-success').click();
             formProcess(this.activeElement.parentElement);
             return false;
         }
@@ -123,30 +123,30 @@ function saveAjax(data, obj, after) {
 }
 
 function formProcess(e) {
-    //var caller = $(e.parentElement);
-    var inputs = $('input, select');
-    var obj = $('table, form').attr('name');
-    var data = {};
+    let caller = $(e.parentElement);
+    let inputs = caller.find('input, select');
+    let obj = $('table, form').attr('name');
+    let data = {};
 
-    for (var i = 0; i < inputs.length; i++) {
-        var fld = $(inputs[i]).attr('datafld');
+    for (let i = 0; i < inputs.length; i++) {
+        let fld = $(inputs[i]).attr('datafld');
         if (fld) {
-            var attr = /*caller.find(*/$('[datafld="' + fld + '"]')/*)*/.val();
+            let attr = caller.find($('[datafld="' + fld + '"]')).val();
             if (attr && obj === 'home') {
-                var value = /*caller.find(*/$('select[datafld="' + fld + '"][name="types"]')/*)*/.val();
+                let value = caller.find($('select[datafld="' + fld + '"][name="types"]')).val();
                 attr = attr.replace(/ /g, '_');
                 if (i === 0) {
                     data[inputs[i].name] = attr;
                 } else {
                     if (value === 'REF') {
-                        var select =/*caller.find(*/$('select[datafld="' + fld + '"][name="home"]')/*)*/.val();
+                        let select =caller.find($('select[datafld="' + fld + '"][name="home"]')).val();
                         data[fld] = select + '_id';
                     } else {
                         data[attr] = value;
                     }
                 }
             } else {
-                var key = $(inputs[i]).attr('datafld');
+                let key = $(inputs[i]).attr('datafld');
                 data[key] = attr;
             }
         }
@@ -163,7 +163,7 @@ function formProcess(e) {
 }
 
 function render(url) {
-    var obj = url.split('/')[0].substring(1);
+    let obj = url.split('/')[0].substring(1);
     $("ul li").removeClass();
     $('[tab="' + obj + '"]').addClass('active');
     if (!obj.startsWith("add")) {
@@ -186,7 +186,7 @@ function getPage(obj) {
 }
 
 function getData(obj, func) {
-    var data = cachedData[obj];
+    let data = cachedData[obj];
     if (data && data.length > 0) {
         func(data, obj)
     } else {
@@ -197,14 +197,14 @@ function getData(obj, func) {
 function loadTabs() {
     getData('home', dataF);
     function dataF(data) {
-        var tabs = $('#tabs');
+        let tabs = $('#tabs');
         tabs.empty();
-        var name = 'home';
-        var ul = $('<ul>').addClass('nav nav-tabs');
-        var li = getLi(name);
+        let name = 'home';
+        let ul = $('<ul>').addClass('nav nav-tabs');
+        let li = getLi(name);
         ul.append(li);
         tabs.append(ul);
-        for (var i = 0; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             name = data[i].table_name;
             li = getLi(name);
             ul.append(li);
@@ -213,15 +213,15 @@ function loadTabs() {
         li.find('a').attr('href', '#addEdithome');
         ul.append(li);
         function getLi(name) {
-            var li = $('<li>').attr('role', "presentation").attr('tab', name);
-            var a = $('<a>').attr('href', '#' + ((name==='+')?'addEdit':name)).text(capitalizeFirstLetter(name));
+            let li = $('<li>').attr('role', "presentation").attr('tab', name);
+            let a = $('<a>').attr('href', '#' + ((name==='+')?'addEdit':name)).text(capitalizeFirstLetter(name));
             return li.append(a);
         }
     }
 }
 
 function loadTable(data, obj) {
-    var addButton = $('#add').text('Add '
+    let addButton = $('#add').text('Add '
         + capitalizeFirstLetter(((obj==='home')?'Table':obj)));
     if (obj === 'home') {
         addButton.removeAttr('onclick role');
@@ -230,25 +230,25 @@ function loadTable(data, obj) {
         addButton.removeAttr('href');
         addButton.attr('onclick', 'addRow("' + obj + '")').attr('role', 'button');
     }
-    var table = $('<table>').addClass('table table-bordered').attr('name', obj);
-    var grid = $('#grid');
+    let table = $('<table>').addClass('table table-bordered').attr('name', obj);
+    let grid = $('#grid');
     grid.empty();
-    var headers = $('<thead>');
-    var contentRows = $('<tbody>');
+    let headers = $('<thead>');
+    let contentRows = $('<tbody>');
 
     grid.append(table);
     table.append(contentRows);
     table.append(headers);
 
     if (data.length > 0) {
-        var keys = Object.keys(data[0]);
+        let keys = Object.keys(data[0]);
         loadTableHeaders(headers, keys);
         $.each(data, function (index, item) {
-            var row = $('<tr>');
+            let row = $('<tr>');
             contentRows.append(row);
             row.append($('<input type="hidden" value="' + item.id + '" />').attr('datafld', 'id'));
-            for (var k = 0; k < keys.length; k++) {
-                var td = $('<td>');
+            for (let k = 0; k < keys.length; k++) {
+                let td = $('<td>');
                 if (k === 0) {
                     td.addClass('col-md-1');
                 } else {
@@ -256,7 +256,7 @@ function loadTable(data, obj) {
                 }
                 row.append(td);
                 if (item[keys[k]]) {
-                    var str;
+                    let str;
                     if (item[keys[k]] instanceof  Object &&
                         !(item[keys[k]] instanceof  Array)) {
                         str = $('<div>').text(item[keys[k]].name)
@@ -275,8 +275,8 @@ function loadTable(data, obj) {
                 }
 
             }
-            var etd = $('<td>').addClass('col-md-1');
-            var editBtn = $('<a role="button" class="btn" >');
+            let etd = $('<td>').addClass('col-md-1');
+            let editBtn = $('<a role="button" class="btn" >');
             etd.append(editBtn);
             row.append(etd);
             if (obj === 'home') {
@@ -292,7 +292,7 @@ function loadTable(data, obj) {
     }
 
     function formatDate(date) {
-        var d = new Date(date);
+        let d = new Date(date);
         d = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear() + " "
             + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
         return d;
@@ -300,10 +300,10 @@ function loadTable(data, obj) {
 }
 
 function loadTableHeaders(headers, keys) {
-    var tH = $('<tr></tr>');
+    let tH = $('<tr></tr>');
     headers.append(tH);
-    for(var k = 0; k < keys.length; k++) {
-        var key = keys[k];
+    for(let k = 0; k < keys.length; k++) {
+        let key = keys[k];
         if (key.endsWith("_fk")) {
             key = key.substring(0, key.length-3);
         }
@@ -318,7 +318,7 @@ function loadAjax(obj, func) {
         url : "/rest/" + obj,
         type : 'GET',
         success : function(data, status) {
-            var jsonData = JSON.parse(data);
+            let jsonData = JSON.parse(data);
             cachedData[obj] = jsonData;
             func(jsonData, obj);
         }
@@ -329,16 +329,16 @@ function loadAddEditPage(obj, id) {
     obj = obj.substring(7, obj.length);
     getPage('addEdit');
 
-    var formDiv = $('#form');
+    let formDiv = $('#form');
     formDiv.empty();
-    var form = $('<form>').addClass('form-horizontal').attr('name', obj)
+    let form = $('<form>').addClass('form-horizontal').attr('name', obj)
         .attr('onsubmit', 'event.preventDefault();checkColumns(this);');
     formDiv.append(form);
 
     if (obj !== 'home') {
         getData(obj + '/cols', function(data) {
-            var cols = [];
-            for (var d in data) {
+            let cols = [];
+            for (let d in data) {
                 cols.push(data[d].Field);
             }
             createFields(obj, cols);
@@ -348,39 +348,39 @@ function loadAddEditPage(obj, id) {
     }
 
     function createFields(obj, cols) {
-        for (var i = 0; i < cols.length; i++) {
-            var col = cols[i];
+        for (let i = 0; i < cols.length; i++) {
+            let col = cols[i];
             if (col === 'id') {
                 continue;
             }
-            var div = $('<div>').addClass('form-group');
+            let div = $('<div>').addClass('form-group');
             form.append(div);
-            var label = $('<label>').addClass('col-md-4 control-label')
+            let label = $('<label>').addClass('col-md-4 control-label')
                 .attr('for', col).text(capitalizeFirstLetter(col) + ':');
             div.append(label);
-            var fDiv = $('<div>').addClass('col-md-8');
+            let fDiv = $('<div>').addClass('col-md-8');
             div.append(fDiv);
             input = $('<input>').attr('type', 'text').attr('name', col)
                 .attr('onclick', 'this.select();');
             fDiv.append(input);
             if (col === 'Column name') {
-                var ol = $('<ol>').addClass('list-group col-md-offset-2').attr('id', 'addedCols');
+                let ol = $('<ol>').addClass('list-group col-md-offset-2').attr('id', 'addedCols');
                 div.after(ol);
-                var add = $('<button>').attr('onclick', 'event.preventDefault();addColumn(this)').text('+');
+                let add = $('<button>').attr('onclick', 'event.preventDefault();addColumn(this)').text('+');
                 fDiv.append(add);
             } else {
                 input.attr('datafld', col);
             }
         }
-        var buttonDiv = $('<div>').addClass('form-group');
+        let buttonDiv = $('<div>').addClass('form-group');
         form.append(buttonDiv);
-        var cancelDiv = $('<div>').addClass('col-md-offset-2 col-md-2');
+        let cancelDiv = $('<div>').addClass('col-md-offset-2 col-md-2');
         buttonDiv.append(cancelDiv);
-        var a = $('<a>').addClass('btn btn-default').attr('href', '#' + obj).text('Cancel');
+        let a = $('<a>').addClass('btn btn-default').attr('href', '#' + obj).text('Cancel');
         cancelDiv.append(a);
-        var submitDiv = $('<div>').addClass('col-md-2');
+        let submitDiv = $('<div>').addClass('col-md-2');
         buttonDiv.append(submitDiv);
-       var submit = $('<input>').addClass('btn btn-default').attr('type', 'submit')
+       let submit = $('<input>').addClass('btn btn-default').attr('type', 'submit')
             .attr('value', 'Create table');
         submitDiv.append(submit);
     }
@@ -394,13 +394,13 @@ function loadAddEditPage(obj, id) {
 }
 
 function addColumn(e) {
-    var input = $(e).prev();
-    var name = input.val();
+    let input = $(e).prev();
+    let name = input.val();
     if (name) {
-        var addedCols = $('#addedCols');
-        var li = $('<li>').addClass('list-group-item');
-        var fIn = $('<input>').val(name).attr('datafld', name).attr('name', name).prop('required', true);
-        var label = $('<label>Type</label>').attr('for', name);
+        let addedCols = $('#addedCols');
+        let li = $('<li>').addClass('list-group-item');
+        let fIn = $('<input>').val(name).attr('datafld', name).attr('name', name).prop('required', true);
+        let label = $('<label>Type</label>').attr('for', name);
         li.append(fIn);
         li.append(label);
         dropdown('types', name, li);
@@ -422,16 +422,16 @@ function addColumn(e) {
 
 function addRow(obj) {
     getData(obj + '/cols', function(data) {
-        var body = $('#grid').find('tbody');
-        var form = $('<form>').attr('id', 'form').attr('name', obj)
+        let body = $('#grid').find('tbody');
+        let form = $('<form>').attr('id', 'form').attr('name', obj)
 
         tr = $('<tr>').attr('name', obj);
         form.append(tr);
         body.append(tr);
-        var cols = [];
+        let cols = [];
         openRowInputs(tr, obj, data, cols);
 
-        var headers = $('thead');
+        let headers = $('thead');
         if (headers.children().length === 0) {
             loadTableHeaders(headers, cols);
         }
@@ -446,11 +446,11 @@ function addRow(obj) {
 }
 
 function openRowInputs(tr, obj, data, cols, rowData) {
-    var types = [];
+    let types = [];
     getColsAndTypes(data, cols, types);
-    for (var i = 0; i < cols.length; i++) {
-        var inputVal;
-        var td = $('<td>').addClass('col-md-1');
+    for (let i = 0; i < cols.length; i++) {
+        let inputVal;
+        let td = $('<td>').addClass('col-md-1');
         tr.append(td);
         if (rowData) {
             inputVal = rowData[i];
@@ -467,14 +467,18 @@ function openCellInput(td, col, type, inputVal) {
     if (type.REF) {
         dropdown(type.REF, col, td, inputVal);
     } else {
-        var input = $('<input>').attr('name', col)
+        let input = $('<input>').attr('name', col)
             .attr('onclick', 'this.select();').attr('datafld', col)
             .attr('placeholder', capitalizeFirstLetter(col)).val(inputVal);
-        if ($('[datafld]:not([type=hidden])').length == 0) {
-            input.attr('onblur', 'reloadTable();');
-        }
 
         td.append(input);
+
+        input.blur((e) => {
+            let nonHiddenInputs = $('[datafld]:not([type=hidden])');
+            if ($('input[dataFld]').length > 1 && !e.relatedTarget && (nonHiddenInputs.length === 1 ||
+                !nonHiddenInputs.filter((i, v) => {return !!v.value;}).length))
+                reloadTable();
+        });
 
         if ($.inArray(type, ['Integer', 'Decimal']) !== -1) {
             input.attr('type', 'number').val(input.val()?input.val():0);
@@ -486,34 +490,34 @@ function openCellInput(td, col, type, inputVal) {
 }
 
 function editCell(e) {
-    var td = $(e);
+    let td = $(e);
     td.removeAttr('onclick');
-    var value = td.text();
-    var obj = td.parent().parent().parent().attr('name');
+    let value = td.text();
+    let obj = td.parent().parent().parent().attr('name');
     td.parent().attr('name', obj);
-    var types = [];
-    var cols = [];
+    let types = [];
+    let cols = [];
     getData(obj + '/cols', function(data) {
         getColsAndTypes(data, cols, types);
-        var col = cols[td.index()-1];
-        var type = types[td.index()-1];
+        let col = cols[td.index()-1];
+        let type = types[td.index()-1];
         openCellInput(td, col, type, value);
         $("input:visible:not(:disabled,:submit)").focus();
     });
 }
 
 function reloadTable() {
-    var obj = window.location.hash.substring(1);
+    let obj = window.location.hash.substring(1);
     getData(obj, loadTable);
 }
 
 function getColsAndTypes(data, cols, types) {
-    for (var d = 0; d < data.length; d++) {
+    for (let d = 0; d < data.length; d++) {
         cols.push(data[d].column_name);
         if (data[d].referenced_table_name !== '') {
             types.push({'REF': data[d].referenced_table_name});
         } else {
-            var type = $.grep(cachedData.types, function(e){
+            let type = $.grep(cachedData.types, function(e){
                 return e.id === data[d].column_type; })[0];
             types.push(type.name);
         }
@@ -533,18 +537,18 @@ function checkColumns(e) {
 }
 
 function editRow(e) {
-    var obj = $(e).parent().parent().attr('name');
+    let obj = $(e).parent().parent().attr('name');
     getData(obj + '/cols', function(data) {
 
-        var row = $(e);
-        var rowData = row.children("td").map(function() {
+        let row = $(e);
+        let rowData = row.children("td").map(function() {
             return $(this).text();
         }).get();
 
-        var obj = window.location.hash.substring(1);
+        let obj = window.location.hash.substring(1);
         row.attr('id', 'form').attr('name', obj);
         row.children().slice(2, row.children().length-2).remove();
-        var cols = [];
+        let cols = [];
         tr = $('<tr>').attr('name', obj);
         row.parent().append(tr);
         openRowInputs(tr, obj, data, cols, rowData);
@@ -563,16 +567,16 @@ function editRow(e) {
 }
 
 function dropdown(name, datafld, parent, value) {
-    var select = $('<select>').addClass('emptyDropdown').attr('name', name).attr('datafld', datafld);
-    parent.append(select)
+    let select = $('<select>').addClass('emptyDropdown').attr('name', name).attr('datafld', datafld);
+    parent.append(select);
     getData(name, function(data) {
         $.each(data, function(ind, d) {
-            var option = document.createElement('option');
+            let option = document.createElement('option');
             option.innerHTML = (name==='home')?d.table_name:d.name;
             option.value = (name==='home')?d.table_name:d.id;
             select.append(option);
         });
-        $('.emptyDropdown').attr('onblur', 'reloadTable();').focus();
+        $('.emptyDropdown')./*attr('onblur', 'reloadTable();').*/focus();
         $('select option:contains("' + value + '")').attr("selected","selected");
     });
 }

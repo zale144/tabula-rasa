@@ -9,7 +9,7 @@ var Db *DB
 
 func GetDBConnection()  {
 	var err error
-	Db, err = Open("mysql", "root:root@tcp(127.0.0.1:3306)/superhero")
+	Db, err = Open("mysql", "zale144:pastazazube@tcp(127.0.0.1:3306)/superuser")
 	if err != nil {
 		print(err)
 	}
