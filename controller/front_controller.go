@@ -21,7 +21,7 @@ func SetupRouter()  {
 	router := httprouter.New()
 	GetDBConnection()
 	router.GET("/", homePage)
-	router.NotFound = http.StripPrefix("/static/", http.FileServer(http.Dir("./src/tabula-rasa/public")))
+	router.NotFound = http.StripPrefix("/static/", http.FileServer(http.Dir("./src/tabula-rasa/web")))
 	router.GET("/rest/:name", processRest)
 	router.GET("/rest/:name/:spec", processRest)
 	router.POST("/rest/:name", processRest)
@@ -30,7 +30,7 @@ func SetupRouter()  {
 }
 
 func homePage(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
-	t, _ := template.ParseFiles("src/tabula-rasa/public/public/index.html")
+	t, _ := template.ParseFiles("src/tabula-rasa/web/web/index.html")
 	t.Execute(w, nil)
 }
 
