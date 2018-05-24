@@ -334,6 +334,12 @@ class Td extends React.Component {
         }
     }
 
+    handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            this.closeCellHandler(e);
+        }
+    };
+
     render() {
         if (this.props.columnName !== 'id' && this.state.isEdit) {
             return <td className={this.props.className}>
@@ -344,6 +350,7 @@ class Td extends React.Component {
                                style={{textAlign: 'center'}}
                                onBlur={(e) => this.closeCellHandler(e)}
                                ref={(input) => { this.cellInput = input; }}
+                               onKeyPress={this.handleKeyPress}
                                type="text"/></td>
         }
         const onClick = this.props.columnName === 'id' ? null : () => this.openCell();
