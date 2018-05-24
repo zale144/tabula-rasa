@@ -35,6 +35,15 @@ tr td {
   background-color: #f0f0f0;
 }
 
+tr td:not(:first-child):not(:last-child) {
+  cursor: pointer;
+  background-color: #f0f0f0;
+}
+
+tr td:not(:first-child):not(:last-child):hover {
+  background-color: #fdfdfd;
+}
+
 .table>tbody>tr>td>* {
   vertical-align: middle;
   display: table-cell;

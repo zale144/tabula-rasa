@@ -8,7 +8,7 @@ import (
 	"database/sql"
 )
 
-// get all entities
+// function for retrieving all entities from database
 func Get(args ...string) (string, error) {
 	single := false
 	query := generateSelectString(&single, args...)
@@ -16,7 +16,7 @@ func Get(args ...string) (string, error) {
 	CheckError(err)
 	return stringifyRows(args[0], rows, single)
 }
-
+// function for generating JSON-like strings from retrieved rows from the database
 func stringifyRows(name string, rows *sql.Rows, single bool) (string, error) {
 	cols, err := rows.Columns()
 	CheckError(err)
@@ -55,7 +55,7 @@ func stringifyRows(name string, rows *sql.Rows, single bool) (string, error) {
 	}
 	return final, err
 }
-
+// function for generating SELECT queries
 func generateSelectString(single *bool, args ...string, ) string {
 	mapParameters := func (args []string) (string, string, string, string) {
 		params := [4]string{}
@@ -81,7 +81,7 @@ func generateSelectString(single *bool, args ...string, ) string {
 	return query
 }
 
-// create entity
+// function for creating entities
 func Create(name string, obj []byte) (string, error) {
 	pairs := unmarshalJson(obj)
 	queryStr, values := generateCreateString(name, pairs)
@@ -94,7 +94,7 @@ func Create(name string, obj []byte) (string, error) {
 	id, _ := res.LastInsertId()
 	return Get(name, fmt.Sprint(id), "")
 }
-
+// function for unmarshalling JSON
 func unmarshalJson(obj []byte) [][]interface{} {
 	pairList := [][]interface{}{}
 	str := string(obj[2:len(obj)-2])
@@ -109,7 +109,7 @@ func unmarshalJson(obj []byte) [][]interface{} {
 	}
 	return pairList
 }
-
+// function for generating INSERT and UPDATE queries
 func generateCreateString(name string, pairs [][]interface{}) (string, []interface{}) {
 	if name == "home" {
 		return generateCreateTableString(pairs), []interface{}{}
@@ -151,7 +151,7 @@ func generateCreateString(name string, pairs [][]interface{}) (string, []interfa
 	}
 	return queryStr, values
 }
-
+// function for generating CREATE TABLE queries
 func generateCreateTableString(pairs [][]interface{}) string {
 	queryStr := ""
 	colsStr := ""
@@ -181,14 +181,14 @@ func generateCreateTableString(pairs [][]interface{}) string {
 			)`
 	return queryStr
 }
-
+// function for generating the foreign key reference
 func makeForeignKey(this, name, ref string) string {
 	return `KEY fk_`+ this +`_`+ name + `_id_idx (`+ name +`_fk),
 			  CONSTRAINT fk_`+ this +`_`+ name + `_id
 			  FOREIGN KEY (`+ name +`_fk)
 			  REFERENCES `+ ref +` (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
 }
-
+// function for generating query for retrieving all column information for a given table and column name
 func makeColsInfo(tableName, colName string) string {
 	if colName != "" {
 		return `select kcu.referenced_table_name
@@ -207,7 +207,7 @@ func makeColsInfo(tableName, colName string) string {
 	}
 }
 
-// delete entity
+// function for generating queries for deleting rows and tables
 func Delete(name string, id string) (string, error) {
 	var err error
 	if name == "home" {

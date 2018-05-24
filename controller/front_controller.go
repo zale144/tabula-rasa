@@ -6,17 +6,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"log"
 	. "tabula-rasa/util"
-	"tabula-rasa/service"
 	"io/ioutil"
+	"tabula-rasa/dao"
 )
 
 type Param struct {
 	Key   string
 	Value string
 }
-
+// TODO refactor everything
 type Params []Param
-
+// setting up the router with endpoints
 func SetupRouter()  {
 	router := httprouter.New()
 	GetDBConnection()
@@ -28,12 +28,12 @@ func SetupRouter()  {
 	router.DELETE("/rest/:name", processRest)
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
-
+// serve the home page from this handler
 func homePage(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
 	t, _ := template.ParseFiles("src/tabula-rasa/web/public/index.html")
 	t.Execute(w, nil)
 }
-
+// generic processing of RESTful http requests
 func processRest(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var err error
 	var out string
@@ -44,15 +44,15 @@ func processRest(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	switch r.Method {
 	case "GET":
-		out, err = service.Get(args...)
+		out, err = dao.Get(args...)
 	case "POST":
 		b, err := ioutil.ReadAll(r.Body)
 		CheckError(err)
 		defer r.Body.Close()
-		out, err = service.Create(name, b)
+		out, err = dao.Create(name, b)
 	case "DELETE":
 		id := r.URL.Query().Get("id")
-		out, err = service.Delete(name, id)
+		out, err = dao.Delete(name, id)
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

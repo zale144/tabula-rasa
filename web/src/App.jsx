@@ -1,5 +1,5 @@
 const {Button, Modal} = ReactBootstrap;
-
+// main component
 class App extends React.Component {
     constructor(props) {
         super(props);
@@ -10,13 +10,13 @@ class App extends React.Component {
             modalOpen: false
         }
     }
-
+    // method to change the name of the table when navigating between tabs
     changeTable(nextTable) {
         this.setState({
             tableName: nextTable,
         });
     }
-
+    // method for loading the tabs
     loadTabs() {
         fetch("/rest/home")
             .then(res => res.json(), {
@@ -38,7 +38,7 @@ class App extends React.Component {
                 }
             )
     }
-
+    // method for loading the table data
     loadTable() {
         fetch("/rest/" + this.state.tableName, {
             method: 'GET'
@@ -59,7 +59,7 @@ class App extends React.Component {
                 }
             )
     }
-
+    // method for loading column names
     getColumns() {
         fetch("/rest/" + this.state.tableName + "/cols", {
             method: 'GET'
@@ -80,7 +80,7 @@ class App extends React.Component {
                 }
             )
     }
-
+    // method for handling saving/updating cells, rows and tables
     saveTable(data, afterSave) {
         fetch("/rest/" + this.state.tableName, {
             method: 'POST',
@@ -91,11 +91,13 @@ class App extends React.Component {
                 afterSave(result);
             });
     }
-
+    // method for handling when user focuses out of a cell
     closeCellHandler(event) {
         const tableData = this.state.tableData.slice(),
             {value, name, attributes} = event.target,
             index = Number(attributes.rowindex.value);
+
+        if (tableData[index][name] === value) return;
 
         tableData[index][name] = value;
 
@@ -122,7 +124,7 @@ class App extends React.Component {
             this.getColumns();
         }
     }
-
+    // method for handling when clicks on "Add New ..." button
     addRow() {
         if (!this.state.columnsLoaded || this.state.columnsError != null) {
             return;
@@ -137,8 +139,8 @@ class App extends React.Component {
             tableData: [emptyRow, ...tableData]
         });
     }
-
-    handleDeleteRow() {
+    // handling when user deletes a row or table
+    handleDelete() {
         const tableName = this.state.tableName;
         const id = this.state.selectedRowId;
 
@@ -147,32 +149,32 @@ class App extends React.Component {
         })
             .then(
                 (result) => {
+                    this.componentDidMount();
                     this.setState({
-                        tableData: this.state.tableData.filter((v) => v.id !== id ),
                         modalOpen: false,
                         selectedRowId: null
                     });
                 },
                 (error) => {
-                    /*this.setState({
+                    /*this.setState({ // TODO handle the error
                         tableError: error,
                     });*/
                 }
             );
     }
-
+    // open the delete modal
     openModal() {
         this.setState({
             modalOpen: true
         });
     }
-
+    // close the delete modal
     closeModal() {
         this.setState({
             modalOpen: false
         });
     }
-
+    // get the id of the row that the user wishes to remove
     selectRow(rowId) {
         this.setState({
             selectedRowId: rowId
@@ -220,20 +222,20 @@ class App extends React.Component {
                 </div>
                 <DeleteModal
                     handleClose={() => this.closeModal()}
-                    handleDelete={() => this.handleDeleteRow()}
+                    handleDelete={() => this.handleDelete()}
                     show={this.state.modalOpen}
                     tableName={this.state.tableName}/>
             </div>
         );
     }
 }
-
+// the "Add New ..." button component
 const Add = (props) => {
     const tableName = props.tableName === 'Home' ? 'Table' : props.tableName;
     return <button onClick={props.onClick}
                    className="btn btn-default">Add New {tableName}</button>
 };
-
+// a tab component
 const Tab = (props) => {
     return (
         <li role="presentation"
@@ -241,7 +243,7 @@ const Tab = (props) => {
             className={props.className}><a>{capitalizeFirstLetter(props.tableName)}</a></li>
     );
 };
-
+// the component with all the tabs
 const Tabs = (props) => {
     const { error, isLoaded, items, onClick, activeTable } = props;
     if (error) {
@@ -259,7 +261,7 @@ const Tabs = (props) => {
         );
     }
 };
-
+// the Navbar component
 const Navbar = (props) => {
     return (
         <div className="navbar">
@@ -276,7 +278,7 @@ const Navbar = (props) => {
         </div>
     );
 };
-
+// the row Delete button component
 const RowDeleteButton = (props) => {
     return <td className="col-md-1">
             <button
@@ -286,7 +288,7 @@ const RowDeleteButton = (props) => {
                 className="btn btn-danger"
                 onClick={props.onClick}>Delete</button></td>
 };
-
+// the table head component
 const THead = (props) => {
     if (!props.isLoaded) {
         return;
@@ -304,7 +306,7 @@ const THead = (props) => {
     </tr>
     </thead>
 };
-
+// the table cell component
 class Td extends React.Component {
     constructor(props) {
         super(props);
@@ -344,17 +346,19 @@ class Td extends React.Component {
                                ref={(input) => { this.cellInput = input; }}
                                type="text"/></td>
         }
-        return <td onClick={() => this.openCell()}
+        const onClick = this.props.columnName === 'id' ? null : () => this.openCell();
+
+        return <td onClick={onClick}
                    className={this.props.className}>{this.props.cellData}</td>;
     }
 }
-
+// the table row component
 const Tr = (props) => {
     let keys = Object.keys(props.rowData);
 
     const handleClick = () => {
         props.openModal();
-        props.selectRow(props.rowData.id)
+        props.selectRow(props.rowData.id || props.rowData.table_name)
     };
 
     return <tr>
@@ -370,7 +374,7 @@ const Tr = (props) => {
         <RowDeleteButton onClick={handleClick}/>
     </tr>
 };
-
+// the table body component
 const TBody = (props) => {
     return <tbody>
         {
@@ -384,7 +388,7 @@ const TBody = (props) => {
         }
     </tbody>;
 };
-
+// the table component
 const Table = (props) => {
     const { error, isLoaded, items, tableName, openModal, selectRow } = props;
     if (error) {
@@ -407,7 +411,7 @@ const Table = (props) => {
         );
     }
 };
-
+// the delete modal component
 const DeleteModal = (props) => {
     return (
         <div>
@@ -429,7 +433,7 @@ const DeleteModal = (props) => {
         </div>
     );
 };
-
+// helper function to capitalize the first letter in a string
 const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
 };
