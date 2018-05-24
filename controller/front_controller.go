@@ -30,7 +30,7 @@ func SetupRouter()  {
 }
 
 func homePage(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
-	t, _ := template.ParseFiles("src/tabula-rasa/web/web/index.html")
+	t, _ := template.ParseFiles("src/tabula-rasa/web/public/index.html")
 	t.Execute(w, nil)
 }
 
