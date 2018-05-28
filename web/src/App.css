@@ -1,88 +1,100 @@
 .App, th {
-  text-align: center;
+    text-align: center;
 }
 
 .App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+    animation: App-logo-spin infinite 20s linear;
+    height: 80px;
 }
 
 .App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+    background-color: #222;
+    height: 100px;
+    padding: 20px;
+    color: white;
 }
 
 .App-title {
-  font-size: 1.5em;
+    font-size: 1.5em;
 }
 
 .App-intro {
-  font-size: large;
+    font-size: large;
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .error {
-  color: red;
+    color: red;
+}
+
+ul>li:first-child.active>a{
+    background-color: yellow !important;
+}
+
+ul>li:first-child>a:hover{
+    background-color: palegoldenrod !important;
+}
+
+ul>li:first-child>a{
+    background-color: lightyellow!important;
 }
 
 tr td {
-  background-color: #f0f0f0;
+    background-color: #f0f0f0;
 }
 
 tr td:not(:first-child):not(:last-child) {
-  cursor: pointer;
-  background-color: #f0f0f0;
+    cursor: pointer;
+    background-color: #f0f0f0;
 }
 
 tr td:not(:first-child):not(:last-child):hover {
-  background-color: #fdfdfd;
+    background-color: #fdfdfd;
 }
 
 .table>tbody>tr>td>* {
-  vertical-align: middle;
-  display: table-cell;
-  height: 20px;
+    vertical-align: middle;
+    display: table-cell;
+    height: 20px;
 }
 
 .table>tbody>tr>td>input {
-  margin-left: -2px;
-  margin-top: -2px;
+    margin-left: -2px;
+    margin-top: -2px;
 }
 
 td input, td select {
-  width: 100%;
-  height : 100%;
-  padding: 0;
-  margin: 0;
+    width: 100%;
+    height : 100%;
+    padding: 0;
+    margin: 0;
 }
 
 tr:nth-child(even) td:nth-child(odd), tr:nth-child(even) td:nth-child(even) {
-  background-color: #e7e7e7;
+    background-color: #e7e7e7;
 }
+
 table {
-  background-color: #cecece;
+    background-color: #cecece;
 }
 
 .error, h3 {
-  color: red;
+    color: red;
 }
-.btn-info, .btn-danger, .btn-success, .btn-default {
-  padding: 3px 7px 3px 7px;
-}
+
 .list-group {
-  width: 115%;
-  list-style: decimal inside;
+    width: 115%;
+    list-style: decimal inside;
 }
 
 .list-group-item {
-  display: list-item;
+    display: list-item;
 }
+
 .list-group-item>* {
-  margin: 2%;
+    margin: 2%;
 }
