@@ -28,7 +28,8 @@ class App extends React.Component {
                     const tabs = [{Table_name: 'tables'}, ...result];
                     this.setState({
                         tabsLoaded: true,
-                        tabs: tabs
+                        tabs: tabs,
+                        tabsError: null
                     });
                 },
                 (error) => {
@@ -44,14 +45,20 @@ class App extends React.Component {
         fetch("/rest/" + this.state.tableName + "/rows", {
             method: 'GET'
         })
-            .then(res => res.json())
+            .then(res => res.json()
+            .then(r => r.map((v) => {
+                return v.Table_name ? {"Table": v.Table_name} : v
+            })))
             .then(
                 (result) => {
+                    if (this.state.intervalId) {
+                        window.clearInterval(this.state.intervalId);
+                    }
                     this.setState({
                         tableLoaded: true,
-                        tableData: result.map((v) => {
-                            return v.Table_name ? {"Table": v.Table_name} : v
-                        })
+                        tableData: result,
+                        tableError: null,
+                        intervalId: null
                     });
                 },
                 (error) => {
@@ -59,6 +66,14 @@ class App extends React.Component {
                         tableLoaded: true,
                         tableError: error,
                     });
+                    if (!this.state.intervalId) {
+                        this.setState({
+                            intervalId: setInterval(() => {
+                                this.componentDidMount()
+                            }, 1000)
+                        });
+
+                    }
                 }
             )
     }
@@ -73,13 +88,14 @@ class App extends React.Component {
                     this.setState({
                         columns: result,
                         originalColLength: result.length,
-                        columnsLoaded: true
+                        columnsLoaded: true,
+                        columnsError: null
                     });
                 },
                 (error) => {
                     this.setState({
                         columnsLoaded: true,
-                        columnsError: error,
+                        columnsError: error
                     });
                 }
             )
@@ -90,9 +106,14 @@ class App extends React.Component {
             method: 'POST',
             body: JSON.stringify(data)
         })
-            .then(res => res.json())
+            .then(res => {
+                return res.json()
+            })
             .then(result => {
                 afterSave(result);
+            },
+            (error) => {
+                this.componentDidMount();
             });
     }
     // method for handling when user focuses out of a cell
@@ -125,7 +146,16 @@ class App extends React.Component {
             cellObj.Id = tableData[index].Id;
             cellObj[name] = value;
         }
-
+        const tempData = JSON.parse(JSON.stringify(tableData));
+        tempData.map((v, i) => {
+            if (i === index && v[name] === value) {
+                v[name] = <img src="/static/public/ajax-loader.gif" style={{margin:'auto'}}/>;
+            }
+            return v;
+        });
+        this.setState({
+            tableData: tempData
+        });
         this.saveTable(cellObj, typ, (result) => {
             if (result[0].Id) {
                 if (!tableData[index].Id) {
@@ -159,9 +189,10 @@ class App extends React.Component {
                     });
                 },
                 (error) => {
-                    /*this.setState({ // TODO handle the error
+                    this.setState({
                         tableError: error,
-                    });*/
+                    });
+                    alert(error.message); // TODO not firing
                 }
             );
     }

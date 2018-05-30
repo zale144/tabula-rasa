@@ -26,6 +26,7 @@ func (tr TableResource) Get(w http.ResponseWriter, r *http.Request, ps httproute
 	}
 	w.Write(str)
 }
+
 // function for saving resources
 func (tr TableResource) Save(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
 	typ := ps.ByName("typ")
@@ -49,11 +50,12 @@ func (tr TableResource) Save(w http.ResponseWriter, r *http.Request, ps httprout
 	}
 	w.Write(str)
 }
+
 // function for deleting resources
 func (tr TableResource) Delete(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
 	typ := ps.ByName("typ")
 	id := r.URL.Query().Get("id")
-	if id == "" || id == "undefined" {
+	if id == "" {
 		http.Error(w, "invalid parameter 'id'", http.StatusInternalServerError)
 		return
 	}
@@ -62,7 +64,7 @@ func (tr TableResource) Delete(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "invalid parameter 'name'", http.StatusInternalServerError)
 		return
 	}
-	err := storage.TableStorage{}.Delete(name, typ, id)
+	err := storage.TableStorage{}.Delete(name, id, typ)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
