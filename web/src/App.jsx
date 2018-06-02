@@ -1,4 +1,4 @@
-const {Button, Modal} = ReactBootstrap;
+const {Button, Modal, DropdownButton, MenuItem} = ReactBootstrap;
 // main component
 class App extends React.Component {
     constructor(props) {
@@ -41,8 +41,9 @@ class App extends React.Component {
             )
     }
     // method for loading the table data
-    loadTable() {
-        fetch("/rest/" + this.state.tableName + "/rows", {
+    loadTable(table, clbck) {
+        const tableName = table || this.state.tableName;
+        fetch("/rest/" + tableName + "/rows", {
             method: 'GET'
         })
             .then(res => res.json()
@@ -54,12 +55,16 @@ class App extends React.Component {
                     if (this.state.intervalId) {
                         window.clearInterval(this.state.intervalId);
                     }
-                    this.setState({
-                        tableLoaded: true,
-                        tableData: result,
-                        tableError: null,
-                        intervalId: null
-                    });
+                    if (clbck) {
+                        clbck(result);
+                    } else {
+                        this.setState({
+                            tableLoaded: true,
+                            tableData: result,
+                            tableError: null,
+                            intervalId: null
+                        });
+                    }
                 },
                 (error) => {
                     this.setState({
@@ -198,14 +203,14 @@ class App extends React.Component {
     }
     componentDidMount() {
         this.loadTabs();
-        this.loadTable();
         this.loadColumns();
+        this.loadTable();
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState["tableName"] !== this.state.tableName) {
-            this.loadTable();
             this.loadColumns();
+            this.loadTable();
         }
     }
     // method for handling when clicks on "Add New ..." button
@@ -236,6 +241,19 @@ class App extends React.Component {
                 tableData: [emptyRow, ...tableData]
             });
         }
+    }
+    // load dropdown menu items
+    loadMenuItems(id, refTableName, clbck) {
+        this.loadTable(refTableName, (data) => {
+            let items = [];
+            data.map(v => {
+                const keys = Object.keys(v);
+                if (!(refTableName === this.state.tableName && v[keys[0]] === id)) {
+                    items.push({id: v[keys[0]], name: v[keys[1]]});
+                }
+            });
+            clbck(items);
+        });
     }
     // edit table handler
     editTable() {
@@ -283,13 +301,15 @@ class App extends React.Component {
                         isEditMode={this.state.isEditMode}/>
                     <Table
                         items={this.state.isEditMode ? this.state.columns : this.state.tableData}
+                        columns={this.state.columns}
                         isLoaded={this.state.tableLoaded}
                         error={this.state.tableError}
                         tableName={this.state.tableName}
                         openModal={() => this.openModal()}
                         closeCellHandler={this.closeCellHandler}
                         selectRow={this.selectRow}
-                        isEditMode={this.state.isEditMode}/>
+                        isEditMode={this.state.isEditMode}
+                        loadMenuItems={(id, table, clbck) => this.loadMenuItems(id, table, clbck)}/>
                 </div>
                 <DeleteModal
                     handleClose={() => this.closeModal()}
@@ -429,15 +449,30 @@ class Td extends React.Component {
     }
 
     closeCellHandler(e) {
-        this.props.closeCellHandler(e);
+        if (e) {
+            if (typeof e !== "object") {
+                e  = {target: {
+                        value: e,
+                        name: this.props.column.Column_name,
+                        attributes: {
+                            rowindex: {
+                                value: this.props.rowIndex
+                            }
+                        }
+                    }
+                };
+            }
+            this.props.closeCellHandler(e);
+        }
         this.setState({
             isEdit: false
         });
     }
 
     componentDidUpdate() {
-        if (this.state.isEdit ||
-            (this.props.isEdit && this.props.columnName === "Column_name")) {
+        if (this.cellInput && this.state.isEdit ||
+                (this.props.isEdit && (this.props.column.Column_name
+                || this.props.column.Table_name) === "Column_name")) {
            this.cellInput.focus();
         }
     }
@@ -448,24 +483,64 @@ class Td extends React.Component {
         }
     }
 
+    renderMenuItems() {
+        this.props.loadMenuItems(this.props.rowId, this.props.column.Referenced_table_name, (menuData) => {
+            let menuItems = [];
+            menuData.map(v => {
+                menuItems.push(<MenuItem eventKey={v.id}>{v.name}</MenuItem>);
+            });
+            this.setState({
+                menuItems: menuItems
+            });
+        });
+    }
+
     render() {
-        if (this.props.columnName !== 'id' && this.state.isEdit || this.props.isEditMode) {
-            return <td className={this.props.className}>
-                        <input name={this.props.columnName}
+        if (!this.props.column) {
+            return "";
+        }
+        const {Column_name, Table_name, Referenced_table_name, Column_type} = this.props.column;
+        let cellData = this.props.cellData;
+        if (typeof cellData === "object") {
+            cellData = cellData[Object.keys(this.props.cellData)[1]];
+        }
+
+        if ((Column_name || Table_name) !== 'id' && this.state.isEdit || this.props.isEditMode) {
+            if (Referenced_table_name/* && this.state.menuItems*/) {
+                if (!this.state.menuItems) {
+                    this.renderMenuItems();
+                }
+                const title = "Choose " + Column_name;
+                return (
+                    <td className={this.props.className}>
+                        <DropdownButton title={title}
+                                        id="dropdown-size-medium"
+                                        onSelect={(e) => this.closeCellHandler(e)}
+                                        onBlur={() => this.closeCellHandler()}
+                                        open={true}>
+                            {this.state.menuItems}
+                        </DropdownButton>
+                    </td>
+                );
+
+            }
+            return !Referenced_table_name && <td className={this.props.className}>
+                        <input name={Column_name || Table_name}
                                defaultValue={this.props.cellData}
                                rowIndex={this.props.rowIndex}
-                               placeholder={this.props.columnName}
+                               placeholder={Column_name || Table_name}
                                style={{textAlign: 'center'}}
                                onBlur={(e) => this.closeCellHandler(e)}
                                ref={(input) => this.cellInput = input}
                                onKeyPress={(e) => this.handleKeyPress(e)}
                                type="text"
-                               key={this.props.cellData}/></td>
-        }
-        const onClick = this.props.columnName === 'Id' ? null : () => this.openCell();
+                               key={cellData}/></td>
+        } else {
+            const onClick = (Column_name || Table_name) === 'Id' ? null : () => this.openCell();
 
-        return <td onClick={onClick}
-                   className={this.props.className}>{this.props.cellData}</td>;
+            return <td onClick={onClick}
+                       className={this.props.className}>{cellData}</td>;
+        }
     }
 }
 // the table row component
@@ -482,10 +557,12 @@ const Tr = (props) => {
             keys.map((k, i) => {
                 return <Td className={i === 0 ? 'col-md-1' : 'col-md-2'}
                            cellData={props.rowData[k]}
-                           columnName={k}
+                           column={props.columns[i]}
                            rowIndex={props.rowIndex}
+                           rowId={props.rowData.Id}
                            closeCellHandler={props.closeCellHandler}
-                           isEditMode={props.isEditMode}/>
+                           isEditMode={props.isEditMode}
+                           loadMenuItems={props.loadMenuItems}/>
             })
         }
         <RowDeleteButton onClick={handleClick}/>
@@ -501,14 +578,16 @@ const TBody = (props) => {
                            selectRow={props.selectRow}
                            rowIndex={i}
                            closeCellHandler={props.closeCellHandler}
-                           isEditMode={props.isEditMode}/>
+                           isEditMode={props.isEditMode}
+                           columns={props.columns}
+                           loadMenuItems={props.loadMenuItems}/>
             })
         }
     </tbody>;
 };
 // the table component
 const Table = (props) => {
-    const { error, isLoaded, items, tableName, openModal, selectRow, isEditMode } = props;
+    const { error, isLoaded, items, tableName, openModal, selectRow, isEditMode, columns } = props;
     if (error) {
         return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -528,7 +607,9 @@ const Table = (props) => {
                                openModal={openModal}
                                selectRow={selectRow}
                                closeCellHandler={props.closeCellHandler}
-                               isEditMode={props.isEditMode}/>
+                               isEditMode={props.isEditMode}
+                               columns={props.columns}
+                               loadMenuItems={props.loadMenuItems}/>
                     </table>
                 </div>
             </div>

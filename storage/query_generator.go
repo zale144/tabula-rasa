@@ -3,6 +3,7 @@ package storage
 import (
 	"strconv"
 	"fmt"
+	"reflect"
 )
 
 
@@ -66,13 +67,18 @@ func generateInsertUpdateQuery(name string, entity map[string]interface{}) strin
 			if k == "Id" {
 				continue
 			}
-			val := v.(string)
-			if val == "" {
-				val = " NULL ,"
-			} else {
-				val = "'" + v.(string) + "',"
+			var val string
+			if reflect.TypeOf(v).String() == "string" {
+				val = fmt.Sprintf("'%v',", v.(string))
+			} else if reflect.TypeOf(v).String() == "float64" {
+				val = fmt.Sprintf("'%v',", v.(float64))
+			} else if reflect.TypeOf(v).String() == "int" {
+				val = fmt.Sprintf("'%v',", v.(int))
 			}
-			queryStr += "`" + k + "` = " + val
+			if val == "''" {
+				val = " NULL ,"
+			}
+			queryStr += "`" + k + "` = " + string(val)
 		}
 		queryStr = queryStr[:len(queryStr)-1] + ` WHERE id = ` + strconv.Itoa(int(entity["Id"].(float64)))
 	} else {

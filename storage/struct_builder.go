@@ -3,23 +3,52 @@ package storage
 import (
 	"reflect"
 	"strings"
-	"strconv"
 	"log"
 )
 
-type StructBuilder struct {}
+type StructBuilder struct {
+	Struct reflect.Value
+}
 
-// convert a map representation of a row in the database to
-// a new custom generated struct with appropriate
-// field names and types
-func (sb StructBuilder) convertRowMapToStruct(cols []ColumnInfo, typeNames []string, m map[string]interface{}) interface{} {
+/*-----------------------------------------------------------
+ * convert a map representation of a row in the database to *
+ * a new custom generated struct with appropriate		    *
+ * field names and types, and fill the data				    *
+ *----------------------------------------------------------*/
+func (sb StructBuilder) convertRowMapToStruct(cols []ColumnInfo, m map[string]interface{}) interface{} {
+	// create a custom struct that will hold the data from the row map
+	sb.createCustomStruct(cols)
+	// iterate through the column names
+	for i, c := range cols {
+		if m[*c.Name] == nil {
+			continue
+		}
+		// use the set func to set the field value, according to type
+		err := TypeSetter{}.Set(m[*c.Name], sb.Struct.Elem().Field(i), *cols[i].Type)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+	}
+	return sb.Struct.Interface()
+}
+// method for creating a custom struct from predefined column names and types
+func (sb *StructBuilder) createCustomStruct(cols []ColumnInfo)  {
 	var structFields []reflect.StructField
 	// iterate through all the column names
 	for i := range cols {
+		// if column is a struct itself, get it's type and
+		// set the new custom struct's type to it
+		var val interface{}
+		if cols[i].Child != nil {
+			val = *cols[i].Child
+		}
+		// use the type setter to get the type for the new struct field
+		typ := TypeSetter{}.Set(val, nil, *cols[i].Type)
 		// set the name and type of the struct field
 		field := reflect.StructField{
-			Name: strings.Title(cols[i].Name), // capitalize, so json can marshal it
-			Type: reflect.TypeOf(typeMap[typeNames[i]]),
+			Name: strings.Title(*cols[i].Name), // capitalize, so json can marshal it
+			Type: reflect.TypeOf(typ),
 		}
 		// append the field to the struct
 		structFields = append(structFields, field)
@@ -29,46 +58,5 @@ func (sb StructBuilder) convertRowMapToStruct(cols []ColumnInfo, typeNames []str
 	structValue := reflect.New(structType)
 	// create the type that will hold the row data
 	obj := structValue.Interface()
-	sr := reflect.ValueOf(obj)
-	// iterate through the column names
-	for i, c := range cols {
-		if m[c.Name] == nil {
-			continue
-		}
-				// set value of appropriate type to struct field
-		switch typeNames[i] {
-		// for string types
-		case Varchar, Text:
-			strVal := string(m[c.Name].([]uint8))
-			sr.Elem().Field(i).SetString(strVal)
-		// for integer types
-		case Int, Integer:
-			intVal, err := strconv.ParseInt(string(m[c.Name].([]uint8)), 0, 64)
-			if err != nil {
-				log.Fatal(err)
-				return err
-			}
-			sr.Elem().Field(i).SetInt(intVal)
-			/*if c.Reference != "" {
-				fmt.Printf( "Column %v with 'id' %v has a reference to table %v\n", c, intVal, c.Reference)
-			}*/
-		// for floating point types
-		case Double, Float:
-			dblVal, err := strconv.ParseFloat(string(m[c.Name].([]uint8)),64)
-			if err != nil {
-				log.Fatal(err)
-				return err
-			}
-			sr.Elem().Field(i).SetFloat(dblVal)
-		// for boolean types
-		case Boolean, Bool:
-			boolVal, err := strconv.ParseBool(string(m[c.Name].([]uint8)))
-			if err != nil {
-				log.Fatal(err)
-				return err
-			}
-			sr.Elem().Field(i).SetBool(boolVal)
-		}
-	}
-	return sr.Interface()
+	sb.Struct = reflect.ValueOf(obj)
 }

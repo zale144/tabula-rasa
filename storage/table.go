@@ -6,54 +6,37 @@ import (
 	"tabula-rasa/libs/memcache"
 	"fmt"
 	"encoding/json"
-	"reflect"
 )
 
 // table storage
 type TableStorage struct {}
 
 type ColumnInfo struct {
-	Name string
-	Reference interface{}
+	Name      *string
+	Type      *string
+	Child     *interface{}
+	Reference *string
 }
 
-// function for retrieving all entities from the given database table
+/*------------------------------------------------------------
+ * method for retrieving all entities from the given 		 *
+ * database/table. It will generalize to any table structure *
+ * or type of data, and read any references to other tables. *
+ *-----------------------------------------------------------*/
 func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 	entities := []interface{}{}
 	// attempt to read from memcache by passing the pointer to our empty slice of interfaces
-	//memcache.ReadFromCache(&entities, name, id, typ)
+	memcache.ReadFromCache(&entities, name, id, typ)
 	// if found result, return it
 	if len(entities) > 0 {
 		return entities, nil
 	}
 	// generate the query according to parameters
 	query := generateSelectQuery(name, id, typ)
-
-	columnInfo := []ColumnInfo{}
-
-	if name != "tables" && typ == "rows" {
-		// recursively call the Get method to get the column information for this table
-		columns, err := ts.Get(name, "", "cols")
-		if err != nil {
-			return nil, err
-		}
-		// get the table column info
-		columnInfo = make([]ColumnInfo, len(columns))
-		for i := range columns {
-			col := columns[i]
-			elem := reflect.ValueOf(col).Elem()
-			fld := elem.Field(0) // name of the column
-			ref := elem.Field(2) // name reference table
-			colName := fld.Interface()
-			reference := ref.Interface()
-			columnInfo[i].Name = colName.(string)
-			columnInfo[i].Reference = reference.(string)
-
-			// needs a join with referenced table
-			if columnInfo[i].Reference != "" && columnInfo[i].Reference != nil {
-				query = generateSelectQuery(name, id, typ)
-			}
-		}
+	// get the complete column info
+	columnInfo, err := ts.getColumnInfo(name, typ, id, &query)
+	if err != nil {
+		return nil, err
 	}
 	rows, err := Db.Query(query)
 	defer rows.Close()
@@ -68,7 +51,7 @@ func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 		}
 		for i := range columnNames {
 			cI := ColumnInfo{
-				Name: columnNames[i],
+				Name: &columnNames[i],
 			}
 			columnInfo = append(columnInfo, cI)
 		}
@@ -80,12 +63,12 @@ func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 		return nil, err
 	}
 	// map the column names into a string array
-	typeNames := make([]string, len(colTypes))
 	for i, v := range colTypes {
-		typeNames[i] = v.DatabaseTypeName()
+		n := v.DatabaseTypeName()
+		columnInfo[i].Type = &n
 	}
+	// we need to pass the pointers to the rows.Scan method
 	vals := make([]interface{}, len(columnInfo))
-	// rows.Scan(...) expects pointers to our values
 	valPtrs := make([]interface{}, len(columnInfo))
 	for i := 0; i < len(columnInfo); i++ {
 		valPtrs[i] = &vals[i]
@@ -98,24 +81,10 @@ func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 			log.Fatal(err)
 			return nil, err
 		}
-		for i, val := range vals {
-			m[columnInfo[i].Name] = val
-			// TODO use JOIN instead
-			if columnInfo[i].Reference != "" && columnInfo[i].Reference != nil && val != nil {
-				fmt.Printf("%v: %v = %v\n", columnInfo[i].Reference, columnInfo[i].Name, string(val.([]uint8)))
-				reference, err := ts.Get(columnInfo[i].Reference.(string), string(val.([]uint8)), "rows")
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-				elem := reflect.ValueOf(reference[0]).Elem()
-				refField := elem.Field(1) // name reference table
-				m[columnInfo[i].Name] = []uint8(refField.Interface().(string))
-				typeNames[i] = Text
-			}
-		}
+		// add the retrieved values to a map
+		ts.addValuesToRowMap(&vals, &m, &columnInfo)
 		// convert the row map into struct interface
-		e := StructBuilder{}.convertRowMapToStruct(columnInfo, typeNames, m)
+		e := StructBuilder{}.convertRowMapToStruct(columnInfo, m)
 		// append the instance of the filled struct onto the return value slice
 		entities = append(entities, e)
 	}
@@ -125,15 +94,19 @@ func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 	}
 	return entities, err
 }
-
-// function for creating and updating entities
+/*------------------------------------------------------------
+ * method for updating/adding rows, columns, tables...	 *
+ * It will generalize to any table structure or type of data *
+ * and persist references to other tables.		 			 *
+ *-----------------------------------------------------------*/
 func (ts TableStorage) Save(name, typ string, body []byte) ([]interface{}, error) {
 	var entity map[string]interface{}
 	json.Unmarshal(body, &entity)
 
 	var err error
+	// generate the query string for saving the resource
 	queryStr := generateSaveQueryString(name, typ, entity)
-
+	// if columns are updated, we don't need to return the old name
 	if typ == "cols" {
 		delete(entity, "Old_column_name")
 	}
@@ -165,16 +138,20 @@ func (ts TableStorage) Save(name, typ string, body []byte) ([]interface{}, error
 	} else if id == nil {
 		id = entity["Table"]
 	}
+	// TODO only update the exact resource
 	memcache.ClearCache()
 
 	entities := []interface{}{}
 	entities = append(entities, entity)
 	return entities, nil
 }
-
-// function for generating queries for deleting rows, tables and columns
+/*------------------------------------------------------------
+ * method for deleting rows, columns, tables...	 		 *
+ * It will generalize to any table structure or type of data *
+ *-----------------------------------------------------------*/
 func (ts TableStorage) Delete(name, id, typ string) error {
 	var err error
+	// generate the delete resource query string
 	queryStr := generateDeleteQueryString(name, id, typ)
 
 	fmt.Println(queryStr)
@@ -189,6 +166,7 @@ func (ts TableStorage) Delete(name, id, typ string) error {
 		log.Println(err)
 		return err
 	}
+	// TODO only update the exact resource
 	memcache.ClearCache()
 	return nil
 }

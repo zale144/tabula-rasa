@@ -11,7 +11,7 @@ import (
 // table resource
 type TableResource struct{}
 
-// function for retrieving resources
+// method for retrieving resources
 func (tr TableResource) Get(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
 	name := ps.ByName("name")
 	spec := ps.ByName("spec")
@@ -27,7 +27,7 @@ func (tr TableResource) Get(w http.ResponseWriter, r *http.Request, ps httproute
 	w.Write(str)
 }
 
-// function for saving resources
+// method for saving resources
 func (tr TableResource) Save(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
 	typ := ps.ByName("typ")
 	name := ps.ByName("name")
@@ -51,7 +51,7 @@ func (tr TableResource) Save(w http.ResponseWriter, r *http.Request, ps httprout
 	w.Write(str)
 }
 
-// function for deleting resources
+// method for deleting resources
 func (tr TableResource) Delete(w http.ResponseWriter, r *http.Request, ps httprouter.Params)  {
 	typ := ps.ByName("typ")
 	id := r.URL.Query().Get("id")
