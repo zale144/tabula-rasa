@@ -500,13 +500,17 @@ class Td extends React.Component {
             return "";
         }
         const {Column_name, Table_name, Referenced_table_name, Column_type} = this.props.column;
+        const table = this.props.tableName;
         let cellData = this.props.cellData;
         if (typeof cellData === "object") {
             cellData = cellData[Object.keys(this.props.cellData)[1]];
         }
-
+        let name = Column_name || Table_name || Referenced_table_name || Column_type;
+        if (table === 'tables') {
+            name = 'Table';
+        }
         if ((Column_name || Table_name) !== 'id' && this.state.isEdit || this.props.isEditMode) {
-            if (Referenced_table_name/* && this.state.menuItems*/) {
+            if (Referenced_table_name) {
                 if (!this.state.menuItems) {
                     this.renderMenuItems();
                 }
@@ -524,11 +528,11 @@ class Td extends React.Component {
                 );
 
             }
-            return !Referenced_table_name && <td className={this.props.className}>
-                        <input name={Column_name || Table_name}
+            return <td className={this.props.className}>
+                        <input name={name}
                                defaultValue={this.props.cellData}
                                rowIndex={this.props.rowIndex}
-                               placeholder={Column_name || Table_name}
+                               placeholder={name}
                                style={{textAlign: 'center'}}
                                onBlur={(e) => this.closeCellHandler(e)}
                                ref={(input) => this.cellInput = input}
@@ -552,17 +556,21 @@ const Tr = (props) => {
         props.selectRow(props.rowData.Id || props.rowData.Table || props.rowData.Column_name);
     };
 
+    if (!props.columns) {
+        return "";
+    }
     return <tr>
         {
             keys.map((k, i) => {
                 return <Td className={i === 0 ? 'col-md-1' : 'col-md-2'}
                            cellData={props.rowData[k]}
-                           column={props.columns[i]}
+                           column={props.columns[i] || ""}
                            rowIndex={props.rowIndex}
                            rowId={props.rowData.Id}
                            closeCellHandler={props.closeCellHandler}
                            isEditMode={props.isEditMode}
-                           loadMenuItems={props.loadMenuItems}/>
+                           loadMenuItems={props.loadMenuItems}
+                           tableName={props.tableName}/>
             })
         }
         <RowDeleteButton onClick={handleClick}/>
@@ -580,7 +588,8 @@ const TBody = (props) => {
                            closeCellHandler={props.closeCellHandler}
                            isEditMode={props.isEditMode}
                            columns={props.columns}
-                           loadMenuItems={props.loadMenuItems}/>
+                           loadMenuItems={props.loadMenuItems}
+                           tableName={props.tableName}/>
             })
         }
     </tbody>;

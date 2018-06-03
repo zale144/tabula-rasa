@@ -23,7 +23,7 @@ func (sb StructBuilder) convertRowMapToStruct(cols []ColumnInfo, m map[string]in
 		if m[*c.Name] == nil {
 			continue
 		}
-		// use the set func to set the field value, according to type
+		// use the Set method to set the field value, according to type
 		err := TypeSetter{}.Set(m[*c.Name], sb.Struct.Elem().Field(i), *cols[i].Type)
 		if err != nil {
 			log.Fatal(err)

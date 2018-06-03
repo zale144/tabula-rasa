@@ -8,7 +8,7 @@ import (
 func (ts TableStorage) getColumnInfo(name, typ, id string, query *string) ([]ColumnInfo, error) {
 	var columnInfo = []ColumnInfo{}
 	if name != "tables" && typ == "rows" {
-		// recursively call the Get method to get the column information for this table
+		// call the Get method to get the column information for this table
 		columns, err := ts.Get(name, "", "cols")
 		if err != nil {
 			return nil, err
@@ -30,7 +30,7 @@ func (ts TableStorage) getReferenceInfo(columnInfo *[]ColumnInfo, columns []inte
 		col := columns[i]
 		elem := reflect.ValueOf(col).Elem()
 		fld := elem.Field(0) // name of the column
-		ref := elem.Field(2) // name reference table
+		ref := elem.Field(2) // name of the referenced table
 		colName := fld.Interface()
 		reference := ref.Interface()
 		colNameStr := colName.(string)
@@ -56,7 +56,7 @@ func (ts TableStorage) addValuesToRowMap(vals *[]interface{}, m *map[string]inte
 			if ref == "" {
 				continue
 			}
-			// get the referenced struct by it's id, using recursion
+			// get the referenced struct by it's id
 			reference, err := ts.Get(ref, string(val.([]uint8)), "rows")
 			if err != nil {
 				log.Println(err)
