@@ -3,7 +3,6 @@ package storage
 import (
 	"reflect"
 	"strings"
-	"log"
 )
 
 type StructBuilder struct {
@@ -24,19 +23,14 @@ func (sb StructBuilder) convertRowMapToStruct(cols []ColumnInfo, m map[string]in
 			continue
 		}
 		// use the Set method to set the field value, according to type
-		ts := TypeSetter{}
-		err := ts.SetType(m[*c.Name], sb.Struct.Elem().Field(i), *cols[i].Type)
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
+		SetType(m[*c.Name], sb.Struct.Elem().Field(i), *cols[i].Type)
 	}
 	return sb.Struct.Interface()
 }
 // method for creating a custom struct from predefined column names and types
 func (sb *StructBuilder) createCustomStruct(cols []ColumnInfo)  {
 	var structFields []reflect.StructField
-	// iterate through all the column names
+	// iterate through all the column names jn n
 	for i := range cols {
 		// if column is a struct itself, get it's type and
 		// set the new custom struct's type to it
@@ -45,9 +39,7 @@ func (sb *StructBuilder) createCustomStruct(cols []ColumnInfo)  {
 			val = *cols[i].Child
 		}
 		// use the type setter to get the type for the new struct field
-		ts := TypeSetter{}
-		ts.SetType(val, nil, *cols[i].Type)
-		typ := ts.value
+		typ := GetType(val, *cols[i].Type)
 		// set the name and type of the struct field
 		field := reflect.StructField{
 			Name: strings.Title(*cols[i].Name), // capitalize, so json can marshal it

@@ -92,7 +92,7 @@ func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 	if len(entities) > 0 {
 		memcache.WriteToCache(&entities, name, id, typ)
 	}
-	return entities, err
+	return entities, nil
 }
 /*------------------------------------------------------------
  * method for updating/adding rows, columns, tables...	 *
