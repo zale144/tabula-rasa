@@ -18,94 +18,102 @@ const (
 	Bool = "BOOL"
 	SingleRef = "SINGLE_REFERENCE"
 )
+
+type TypeSetter struct {
+	value interface{}
+}
+
+type Type interface {
+	Set(val interface{}, field interface{}) (interface{}, error)
+}
 // a map holding all of the data type reference functions that we will use
 // while setting field type/value during custom struct creation
 var (
-	typeSetter = map[string]interface{}{
-		Text: setString,
-		Varchar: setString,
-		Int: setInteger,
-		Integer: setInteger,
-		Double: setDouble,
-		Float: setDouble,
-		Boolean: setBoolean,
-		Bool: setBoolean,
-		SingleRef: setSingleReference,
+	typeMap = map[string]Type{
+		Text:    new(text),
+		Varchar: new(text),
+		Int: new(integer),
+		Integer: new(integer),
+		Double: new(double),
+		Float: new(double),
+		Boolean: new(boolean),
+		Bool: new(boolean),
+		SingleRef: new(singleReference),
 	}
 )
-
-type TypeSetter struct {
-	SetterFunc func(val interface{}, field interface{})interface{}
-}
-
 // set value/type according to value, field, type
-func (ts TypeSetter) Set(val interface{}, field interface{}, typ string) interface{} {
-	// set the setter func by type name
-	ts.setFunc(typ)
-	// return the error/type
-	return ts.SetterFunc(val, field)
+func (ts *TypeSetter) SetType(val interface{}, field interface{}, typ string) error {
+	typeStruct := typeMap[typ]
+	v, err := typeStruct.Set(val, field)
+	ts.value = v
+	return err
 }
-// method for setting the setter function according to data type name
-func (ts *TypeSetter) setFunc(typ string) {
-	// get the setter func from the typeSetter map
-	ts.SetterFunc = typeSetter[typ].(func(val interface{}, field interface{})interface{})
-}
-// function for setting a string value/type to a struct field
-func setString(val interface{}, field interface{}) interface{} {
+// implements Type
+type text struct {}
+// method for setting a string value/type to a struct field
+func (s text) Set(val interface{}, field interface{}) (interface{}, error) {
 	if field == nil {
-		return *new(string)
+		return *new(string), nil
 	}
 	strVal := string(val.([]uint8))
 	field.(reflect.Value).SetString(strVal)
-	return nil
+	return nil, nil
 }
-// function for setting an integer value/type to a struct field
-func setInteger(val interface{}, field interface{}) interface{} {
+// implements Type
+type integer struct {}
+// method for setting an integer value/type to a struct field
+func (i integer) Set(val interface{}, field interface{}) (interface{}, error) {
 	if field == nil {
-		return *new(int)
+		return *new(int), nil
 	}
 	strVal := string(val.([]uint8))
 	intVal, err := strconv.ParseInt(strVal, 0, 64)
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return nil, err
 	}
 	field.(reflect.Value).SetInt(intVal)
-	return nil
+	return nil, nil
 }
-// function for setting a double value/type to a struct field
-func setDouble(val interface{}, field interface{}) interface{} {
+// implements Type
+type double struct {}
+// method for setting a double value/type to a struct field
+func (d double) Set(val interface{}, field interface{}) (interface{}, error) {
 	if field == nil {
-		return *new(float64)
+		return *new(float64), nil
 	}
 	strVal := string(val.([]uint8))
 	dblVal, err := strconv.ParseFloat(strVal, 64)
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return nil, err
 	}
 	field.(reflect.Value).SetFloat(dblVal)
-	return nil
+	return nil, nil
 }
-// function for setting a double value/type to a struct field
-func setBoolean(val interface{}, field interface{}) interface{} {
+// implements Type
+type boolean struct {}
+// method for setting a double value/type to a struct field
+func (b boolean) Set(val interface{}, field interface{}) (interface{}, error) {
 	if field == nil {
-		return *new(bool)
+		return *new(bool), nil
 	}
 	strVal := string(val.([]uint8))
 	boolVal, err := strconv.ParseBool(strVal)
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return nil, err
 	}
 	field.(reflect.Value).SetBool(boolVal)
-	return nil
+	return nil, nil
 }
-// function for setting a single reference value/type to a struct field
-func setSingleReference(val interface{}, field interface{}) interface{} {
+// implements Type
+type singleReference struct {}
+// method for setting a single reference value/type to a struct field
+func (sr singleReference) Set(val interface{}, field interface{}) (interface{}, error) {
 	if field == nil {
-		return reflect.ValueOf(val).Interface()
+		return interface{}(reflect.ValueOf(val).Interface()), nil
 	}
 	field.(reflect.Value).Set(reflect.ValueOf(val))
-	return nil
+	return nil, nil
 }

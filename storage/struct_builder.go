@@ -24,7 +24,8 @@ func (sb StructBuilder) convertRowMapToStruct(cols []ColumnInfo, m map[string]in
 			continue
 		}
 		// use the Set method to set the field value, according to type
-		err := TypeSetter{}.Set(m[*c.Name], sb.Struct.Elem().Field(i), *cols[i].Type)
+		ts := TypeSetter{}
+		err := ts.SetType(m[*c.Name], sb.Struct.Elem().Field(i), *cols[i].Type)
 		if err != nil {
 			log.Fatal(err)
 			return err
@@ -44,7 +45,9 @@ func (sb *StructBuilder) createCustomStruct(cols []ColumnInfo)  {
 			val = *cols[i].Child
 		}
 		// use the type setter to get the type for the new struct field
-		typ := TypeSetter{}.Set(val, nil, *cols[i].Type)
+		ts := TypeSetter{}
+		ts.SetType(val, nil, *cols[i].Type)
+		typ := ts.value
 		// set the name and type of the struct field
 		field := reflect.StructField{
 			Name: strings.Title(*cols[i].Name), // capitalize, so json can marshal it
