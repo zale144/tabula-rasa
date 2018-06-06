@@ -1,5 +1,15 @@
 # tabula-rasa
-TabulaRasa is a demo web app written in Golang and React.js for managing a relational database.
-The user can read, create, update and delete tables and data through a front-end interface.
-Later on it could be used for storing data that has been scraped by a web crawler that will probably be written in Python.
-One idea is to use this data to build Machine Learning models...
+
+(still in development)
+
+TabulaRasa is a demo web app written in Golang and React.js for managing relational databases.
+
+The user can read, create, update and delete tables and their data through a front-end interface.
+
+The account registration is handled by an RPC server, "account_service".
+
+Each new registered user will have a fresh new database created for them, on which they can create custom tables 
+and manage them and their data.
+It supports Integer, Float, String, Boolean data types, as well as table references. 
+
+The app uses reflection for the creation of custom structs according to the database table structure.
