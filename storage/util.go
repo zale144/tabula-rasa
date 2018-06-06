@@ -5,17 +5,17 @@ import (
 	"log"
 )
 // method for getting complete column info
-func (ts TableStorage) getColumnInfo(name, typ, id string, query *string) ([]ColumnInfo, error) {
+func (ts TableStorage) getColumnInfo(name, typ, id, dbName string, query *string) ([]ColumnInfo, error) {
 	var columnInfo = []ColumnInfo{}
 	if name != "tables" && typ == "rows" {
 		// call the Get method to get the column information for this table
-		columns, err := ts.Get(name, "", "cols")
+		columns, err := ts.Get(name, "", "cols", dbName)
 		if err != nil {
 			return nil, err
 		}
 		columnInfo = make([]ColumnInfo, len(columns))
 		// retrieve the reference info for the column if any
-		err = ts.getReferenceInfo(&columnInfo, columns, query, id, typ, name)
+		err = ts.getReferenceInfo(&columnInfo, columns, query, id, typ, name, dbName)
 		if err != nil {
 			return nil, err
 		}
@@ -23,7 +23,7 @@ func (ts TableStorage) getColumnInfo(name, typ, id string, query *string) ([]Col
 	return columnInfo, nil
 }
 // method for retrieving referenced tables info
-func (ts TableStorage) getReferenceInfo(columnInfo *[]ColumnInfo, columns []interface{}, query *string, id, typ, name string) error {
+func (ts TableStorage) getReferenceInfo(columnInfo *[]ColumnInfo, columns []interface{}, query *string, id, typ, name, dbName string) error {
 	// get the table column info
 	colInfo := *columnInfo
 	for i := range columns {
@@ -38,13 +38,13 @@ func (ts TableStorage) getReferenceInfo(columnInfo *[]ColumnInfo, columns []inte
 		refStr := reference.(string)
 		colInfo[i].Reference = &refStr
 		if *colInfo[i].Reference != "" {
-			*query = generateSelectQuery(name, id, typ)
+			*query = generateSelectQuery(name, id, typ, dbName)
 		}
 	}
 	return nil
 }
 // method for adding values to the row map
-func (ts TableStorage) addValuesToRowMap(vals *[]interface{}, m *map[string]interface{}, columnInfo *[]ColumnInfo) {
+func (ts TableStorage) addValuesToRowMap(vals *[]interface{}, m *map[string]interface{}, columnInfo *[]ColumnInfo, dbName string) {
 	//refMapV := *refMap
 	mV := *m
 	colInfo := *columnInfo
@@ -57,7 +57,7 @@ func (ts TableStorage) addValuesToRowMap(vals *[]interface{}, m *map[string]inte
 				continue
 			}
 			// get the referenced struct by it's id
-			reference, err := ts.Get(ref, string(val.([]uint8)), "rows")
+			reference, err := ts.Get(ref, string(val.([]uint8)), "rows", dbName)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -65,7 +65,7 @@ func (ts TableStorage) addValuesToRowMap(vals *[]interface{}, m *map[string]inte
 			refStruct := reflect.ValueOf(reference[0]).Elem().Interface()
 			mV[*colInfo[i].Name] = refStruct
 			colInfo[i].Child = &refStruct
-			// TODO many-to-many reference
+			// TODO add many-to-many reference
 			sRef := SingleRef // set the type of reference
 			colInfo[i].Type = &sRef
 		}

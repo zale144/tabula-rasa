@@ -19,10 +19,11 @@ class App extends React.Component {
     }
     // method for loading the tabs
     loadTabs() {
-        fetch("/rest/tables/tabs")
-            .then(res => res.json(), {
-                method: 'GET'
-            })
+        fetch("/rest/tables/tabs", {
+            method: 'GET',
+            credentials: 'include',
+        })
+            .then(res => res.json())
             .then(
                 (result) => {
                     const tabs = [{Table_name: 'tables'}, ...result];
@@ -43,7 +44,8 @@ class App extends React.Component {
     // method for loading the table data
     loadTable() {
         fetch("/rest/" + this.state.tableName + "/rows", {
-            method: 'GET'
+            method: 'GET',
+            credentials: 'include',
         })
             .then(res => res.json()
             .then(r => r.map((v) => {
@@ -80,7 +82,8 @@ class App extends React.Component {
     // method for loading column names
     loadColumns() {
         fetch("/rest/" + this.state.tableName + "/cols", {
-            method: 'GET'
+            method: 'GET',
+            credentials: 'include',
         })
             .then(res => res.json())
             .then(
@@ -104,7 +107,8 @@ class App extends React.Component {
     saveTable(data, typ, afterSave) {
         fetch("/rest/" + this.state.tableName + "/" + typ, {
             method: 'POST',
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            credentials: 'include',
         })
             .then(res => {
                 return res.json()
@@ -177,8 +181,9 @@ class App extends React.Component {
         const id = this.state.selectedRowId;
         const typ = this.state.isEditMode ? "cols" : "rows";
 
-        fetch("/rest/" + tableName + "/" + typ + "?id=" + id, {
-            method: 'DELETE'
+        fetch("/rest/" + tableName + "/" + typ + "/" + id, {
+            method: 'DELETE',
+            credentials: 'include',
         })
             .then(
                 (result) => {
@@ -262,10 +267,25 @@ class App extends React.Component {
         })
     }
 
+    static signout() {
+        fetch("/a/signout", {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(
+                (result) => {
+                    location.reload();
+                },
+                (error) => {
+                    // TODO handle
+                }
+            )
+    }
+
     render() {
         return (
             <div className="App">
-                <Header />
+                <Header onClick={() => App.signout()}/>
 
                 <div className="container">
                     <h1>{capitalizeFirstLetter(this.state.tableName)}</h1>
@@ -301,9 +321,10 @@ class App extends React.Component {
     }
 }
 // the header
-const Header = () => {
+const Header = (props) => {
     return <header className="App-header">
                 <h1>Welcome to Tabula Rasa</h1>
+                <button onClick={props.onClick} className="btn btn-default pull-right">Signout</button>
             </header>
 };
 // the "Add New ..." button component

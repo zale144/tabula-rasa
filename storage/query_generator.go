@@ -8,36 +8,36 @@ import (
 
 
 // function for generating SELECT queries
-func generateSelectQuery(name, id, typ string) string {
+func generateSelectQuery(name, id, typ, dbName string) string {
 	query := "SELECT * FROM " + name
 	if id != "" && id != "0" {
 		query += " WHERE id = " + id
 	} else if name == "tables" {
 		query = `SELECT DISTINCT table_name FROM information_schema.columns
-				 WHERE column_name IN ('id') AND table_schema = 'superuser';`
+				 WHERE column_name IN ('id') AND table_schema = '` + dbName + `';`
 	} else if typ == "cols" {
-		query = generateColsInfoQuery(name, "")
+		query = generateColsInfoQuery(name, "", dbName)
 	}
 	fmt.Println(query)
 	return query
 }
 
 // function for generating query for retrieving all column information for a given table and column name
-func generateColsInfoQuery(tableName, colName string) string {
+func generateColsInfoQuery(tableName, colName, dbName string) string {
 	if colName != "" {
 		return `SELECT kcu.referenced_table_name
 				FROM information_schema.key_column_usage kcu
-				WHERE kcu.TABLE_SCHEMA   = 'superuser'
+				WHERE kcu.TABLE_SCHEMA   = '` + dbName + `'
 				AND  kcu.column_name   = '` + colName + `'
 				AND  kcu.table_name = '` + tableName + `'`
 	} else {
 		return `SELECT cols.column_name, cols.column_type ,
 				(SELECT kcu.referenced_table_name from information_schema.key_column_usage kcu
-				WHERE kcu.TABLE_SCHEMA   = 'superuser'
+				WHERE kcu.TABLE_SCHEMA   = '` + dbName + `'
 				AND  kcu.column_name   = cols.column_name
 				AND  kcu.table_name = '` + tableName + `' limit 1) AS referenced_table_name
 				FROM information_schema.columns cols
-				WHERE cols.TABLE_SCHEMA = 'superuser' AND cols.table_name = '` + tableName + `';`
+				WHERE cols.TABLE_SCHEMA = '` + dbName + `' AND cols.table_name = '` + tableName + `';`
 	}
 }
 // function for generating universal save query string

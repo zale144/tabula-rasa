@@ -4,6 +4,8 @@ import (
 	"tabula-rasa/services/account_service/model"
 	"strings"
 	"tabula-rasa/services/account_service/libs/crypto"
+	"log"
+	"tabula-rasa/services/account_service/db"
 )
 
 // AccountStorage gives all methods to manage Accounts
@@ -24,17 +26,29 @@ func (ac AccountStorage) Insert(Account model.Account) error {
 	Account.Email = strings.ToLower(Account.Email)
 	Account.Password = crypto.CryptPrivate(Account.Password, crypto.CRYPT_SETTING)
 
-
+	_, err := dba.Db.Exec("INSERT INTO account (first_name, last_name, email, password, active) VALUES (?,?,?,?,?)",
+		Account.FirstName, Account.LastName, Account.Email, Account.Password, true)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
 	return nil
 }
 
 // Get Account by email
 func (ac AccountStorage) GetByEmail(email string) (*model.Account, error) {
-
 	var account model.Account
-
+	rows, err := dba.Db.Query("SELECT * FROM account WHERE email = ?", email)
+	defer rows.Close()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	for rows.Next() {
+		rows.Scan(&account.Id, &account.FirstName, &account.LastName, &account.Email, &account.Password, &account.Active)
+		break
+	}
 	return &account, nil
-
 }
 
 type AccountUpdater struct {

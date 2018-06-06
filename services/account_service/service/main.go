@@ -1,16 +1,14 @@
-package service
+package main
 
 import (
-	"net/http"
-	"github.com/dchest/authcookie"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	"tabula-rasa/services/account_service/model"
 	"tabula-rasa/services/account_service/resource"
-	"tabula-rasa/services/account_service/db"
 	"log"
 	"fmt"
 	"flag"
+	"github.com/labstack/echo/middleware"
+	"tabula-rasa/services/account_service/db"
 )
 
 var (
@@ -23,7 +21,7 @@ var (
 // setting up the router with endpoints
 func main()  {
 
-	err := db.GetDBConnection()
+	err := dba.GetDBConnection()
 	if err != nil {
 		log.Fatalf("cannot initialize db: %v", err)
 		return
@@ -36,43 +34,23 @@ func main()  {
 	}
 
 	e := echo.New()
-
 	e.Use(middleware.CORS())
 	e.Use(middleware.Secure())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
 
-	admin := e.Group("/a")
-	admin.Use(authMiddleware)
+	admin := e.Group("/admin")
 
-	apiv1 := e.Group("/api/v1")
-
-	apiv1.POST("/accounts/signin/", resource.AccountResource{}.Signin)
-	apiv1.POST("/accounts", resource.AccountResource{}.Add)
-	apiv1.GET("/accounts/:id/signout", resource.AccountResource{}.Signout)
-	apiv1.PUT("/accounts/:id", resource.AccountResource{}.Update)
+	admin.GET("/accounts/:email", resource.AccountResource{}.GetByEmail)
+	admin.POST("/accounts/signin", resource.AccountResource{}.Signin)
+	admin.POST("/accounts", resource.AccountResource{}.Add)
+	admin.PUT("/accounts/:id", resource.AccountResource{}.Update)
 
 	if *sslcert != "" && *sslkey != "" {
 		e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%v", *port),
 			*sslcert, *sslkey))
 	} else {
 		e.Logger.Fatal(e.Start(fmt.Sprintf(":%v", *port)))
-	}
-
-}
-
-func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		cookie, err := c.Cookie(model.CookieName)
-		if err == nil {
-			login := authcookie.Login(cookie.Value, []byte(model.SECRET))
-			if login == "" {
-				return c.Redirect(http.StatusTemporaryRedirect, "/")
-			}
-			c.Request().Header.Set(model.HEADER_AUTH_USER_ID, login)
-			return next(c)
-		}
-		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 }

@@ -2,7 +2,7 @@ package storage
 
 import (
 	"log"
-	. "tabula-rasa/db"
+	"tabula-rasa/db"
 	"tabula-rasa/libs/memcache"
 	"fmt"
 	"encoding/json"
@@ -23,30 +23,35 @@ type ColumnInfo struct {
  * database/table. It will generalize to any table structure *
  * or type of data, and read any references to other tables. *
  *-----------------------------------------------------------*/
-func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
+func (ts TableStorage) Get(name, id, typ, dbName string) ([]interface{}, error) {
 	entities := []interface{}{}
 	// attempt to read from memcache by passing the pointer to our empty slice of interfaces
-	memcache.ReadFromCache(&entities, name, id, typ)
+	memcache.ReadFromCache(&entities, name, id, typ, dbName)
 	// if found result, return it
 	if len(entities) > 0 {
 		return entities, nil
 	}
 	// generate the query according to parameters
-	query := generateSelectQuery(name, id, typ)
+	query := generateSelectQuery(name, id, typ, dbName)
 	// get the complete column info
-	columnInfo, err := ts.getColumnInfo(name, typ, id, &query)
+	columnInfo, err := ts.getColumnInfo(name, typ, id, dbName, &query)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
+	// get the database connection by it's name
+	Db := db.GetConnection(dbName)
 	rows, err := Db.Query(query)
 	defer rows.Close()
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	if len(columnInfo) == 0 {
 		// get the table column information
 		columnNames, err := rows.Columns()
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 		for i := range columnNames {
@@ -82,7 +87,7 @@ func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 			return nil, err
 		}
 		// add the retrieved values to a map
-		ts.addValuesToRowMap(&vals, &m, &columnInfo)
+		ts.addValuesToRowMap(&vals, &m, &columnInfo, dbName)
 		// convert the row map into struct interface
 		e := StructBuilder{}.convertRowMapToStruct(columnInfo, m)
 		// append the instance of the filled struct onto the return value slice
@@ -90,16 +95,16 @@ func (ts TableStorage) Get(name, id, typ string) ([]interface{}, error) {
 	}
 	// if the return value was not empty, write it to cache with given parameters
 	if len(entities) > 0 {
-		memcache.WriteToCache(&entities, name, id, typ)
+		memcache.WriteToCache(&entities, name, id, typ, dbName)
 	}
-	return entities, nil
+	return entities, err
 }
 /*------------------------------------------------------------
  * method for updating/adding rows, columns, tables...	 *
  * It will generalize to any table structure or type of data *
  * and persist references to other tables.		 			 *
  *-----------------------------------------------------------*/
-func (ts TableStorage) Save(name, typ string, body []byte) ([]interface{}, error) {
+func (ts TableStorage) Save(name, typ, dbName string, body []byte) ([]interface{}, error) {
 	var entity map[string]interface{}
 	json.Unmarshal(body, &entity)
 
@@ -111,19 +116,21 @@ func (ts TableStorage) Save(name, typ string, body []byte) ([]interface{}, error
 		delete(entity, "Old_column_name")
 	}
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return nil, err
 	}
 	fmt.Println(queryStr)
+	// get the database connection by it's name
+	Db := db.GetConnection(dbName)
 	stmt, err := Db.Prepare(queryStr)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return nil, err
 	}
 	defer stmt.Close()
 	res, err := stmt.Exec()
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return nil, err
 	}
 	id := entity["Id"]
@@ -149,21 +156,23 @@ func (ts TableStorage) Save(name, typ string, body []byte) ([]interface{}, error
  * method for deleting rows, columns, tables...	 		 *
  * It will generalize to any table structure or type of data *
  *-----------------------------------------------------------*/
-func (ts TableStorage) Delete(name, id, typ string) error {
+func (ts TableStorage) Delete(name, id, typ, dbName string) error {
 	var err error
 	// generate the delete resource query string
 	queryStr := generateDeleteQueryString(name, id, typ)
 
 	fmt.Println(queryStr)
+	// get the database connection by it's name
+	Db := db.GetConnection(dbName)
 	stmt, err := Db.Prepare(queryStr)
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 		return err
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec()
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 		return err
 	}
 	// TODO only update the exact resource

@@ -27,6 +27,7 @@ type ItemKey struct {
 	Name string
 	ID   string
 	Col  string
+	Db 	 string
 }
 // read, write, remove, clear request channels
 var (
@@ -56,12 +57,13 @@ func MemCache () { // encapsulate the instance of cache map in a goroutine and a
 	}
 }
 // read item from cache
-func ReadFromCache(entities *[]interface{}, name, id, col string)  { // return interface
+func ReadFromCache(entities *[]interface{}, name, id, col, dbName string)  {
 	read := &ReadReq{ // instantiate a read request
 		Key: ItemKey{
 			Name: name,
 			ID:   id,
 			Col:  col,
+			Db:	  dbName,
 		},
 		Resp: make(chan *[]interface{}),
 	}
@@ -73,12 +75,13 @@ func ReadFromCache(entities *[]interface{}, name, id, col string)  { // return i
 	}
 }
 // write item to cache
-func WriteToCache(entities *[]interface{}, name, id, col string)  {
+func WriteToCache(entities *[]interface{}, name, id, col, dbName string)  {
 	write := &WriteReq{ // instantiate a write request
 		Key: ItemKey{
 			Name: name,
 			ID:   id,
 			Col:  col,
+			Db:	  dbName,
 		},
 		Val: entities,
 		Resp: make(chan bool),

@@ -17,13 +17,23 @@ import (
 // AccountResource
 type AccountResource struct{}
 
+// get account by email
+func (ac AccountResource) GetByEmail(c echo.Context) error {
+	Email := c.Param("email")
+	fmt.Println(Email)
+	accountModel, err := storage.AccountStorage{}.GetByEmail(Email)
+	if err != nil {
+		c.Error(echo.NewHTTPError(http.StatusBadRequest, err.Error()))
+		return err
+	}
 
+	return c.JSON(http.StatusOK, accountModel)
+}
 // Add new account
 func (ac AccountResource) Add(c echo.Context) error {
-
 	type AddAccountRequest struct {
-		LastName        string `json:"lastName"`
 		FirstName       string `json:"firstName"`
+		LastName        string `json:"lastName"`
 		Email           string `json:"email"`
 		Password        string `json:"password"`
 		ConfirmPassword string `json:"confirmPassword"`
@@ -85,9 +95,8 @@ func (ac AccountResource) Add(c echo.Context) error {
 		Path:  "/",
 	}
 
-	c.SetCookie(cookie)
-
-	return c.JSON(http.StatusCreated, "Created")
+	fmt.Printf("set cookie: %v\n", cookie)
+	return c.JSON(http.StatusCreated, cookie)
 }
 
 // signin an account
@@ -126,29 +135,13 @@ func (ac AccountResource) Signin(c echo.Context) error {
 		return err
 	}
 
-	// else here it is OK => correct user
 	cookie := &http.Cookie{
 		Name:  model.CookieName,
 		Value: authcookie.NewSinceNow(accountModel.Email, 24*time.Hour, []byte(model.SECRET)),
 		Path:  "/",
 	}
-
-	c.SetCookie(cookie)
-
-	return nil
-}
-
-// signout from an account
-func (ac AccountResource) Signout(c echo.Context) error {
-
-	cookie := &http.Cookie{
-		Name:    model.CookieName,
-		Expires: time.Now(),
-		Path:    "/",
-	}
-
-	c.SetCookie(cookie)
-	return nil
+	fmt.Printf("got cookie: %v\n", cookie)
+	return c.JSON(http.StatusCreated, cookie)
 }
 
 // update an account
@@ -163,7 +156,6 @@ func (ac AccountResource) Update(c echo.Context) error {
 	}
 
 	updateAccountReq := new(UpdateAccountRequest) //initialize  struct updateAccountReq
-
 	if err := c.Bind(updateAccountReq); err != nil { //get and bind data from request to struct updateAccountReq
 
 		err := fmt.Errorf("Invalid JSON payload")
